@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/taehioum/glox/pkg/parser"
+	pprint "github.com/taehioum/glox/pkg/printer"
 	"github.com/taehioum/glox/pkg/scanner"
 )
 
@@ -49,9 +51,13 @@ func (i *Interpreter) run(source string) error {
 		return fmt.Errorf("running: %w", err)
 	}
 
-	for _, token := range tokens {
-		fmt.Println(token)
+	exprs, err := parser.Parse(tokens)
+	if err != nil {
+		return fmt.Errorf("running: %w", err)
 	}
+
+	s := pprint.Print(exprs)
+	fmt.Println(s)
 
 	return nil
 }

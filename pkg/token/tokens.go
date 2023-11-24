@@ -2,63 +2,63 @@ package token
 
 import "fmt"
 
-type TokenType string
+type Type string
 
 const (
 	// Single-character tokens.
-	LEFTPAREN  TokenType = "LEFTPAREN"
-	RIGHTPAREN TokenType = "RIGHTPAREN"
-	LEFTBRACE  TokenType = "LEFTBRACE"
-	RIGHTBRACE TokenType = "RIGHTBRACE"
-	COMMA      TokenType = "COMMA"
-	DOT        TokenType = "DOT"
-	MINUS      TokenType = "MINUS"
-	PLUS       TokenType = "PLUS"
-	SEMICOLON  TokenType = "SEMICOLON"
-	SLASH      TokenType = "SLASH"
-	STAR       TokenType = "STAR"
+	LEFTPAREN  Type = "LEFTPAREN"
+	RIGHTPAREN Type = "RIGHTPAREN"
+	LEFTBRACE  Type = "LEFTBRACE"
+	RIGHTBRACE Type = "RIGHTBRACE"
+	COMMA      Type = "COMMA"
+	DOT        Type = "DOT"
+	MINUS      Type = "MINUS"
+	PLUS       Type = "PLUS"
+	SEMICOLON  Type = "SEMICOLON"
+	SLASH      Type = "SLASH"
+	STAR       Type = "STAR"
 
 	// One or two character tokens.
-	BANG         TokenType = "BANG"
-	BANGEQUAL    TokenType = "BANGEQUAL"
-	EQUAL        TokenType = "EQUAL"
-	EQUALEQUAL   TokenType = "EQUALEQUAL"
-	GREATER      TokenType = "GREATER"
-	GREATEREQUAL TokenType = "GREATEREQUAL"
-	LESS         TokenType = "LESS"
-	LESSEQUAL    TokenType = "LESSEQUAL"
+	BANG         Type = "BANG"
+	BANGEQUAL    Type = "BANGEQUAL"
+	EQUAL        Type = "EQUAL"
+	EQUALEQUAL   Type = "EQUALEQUAL"
+	GREATER      Type = "GREATER"
+	GREATEREQUAL Type = "GREATEREQUAL"
+	LESS         Type = "LESS"
+	LESSEQUAL    Type = "LESSEQUAL"
 
 	// Literals.
-	IDENTIFIER TokenType = "IDENTIFIER"
-	STRING     TokenType = "STRING"
-	NUMBER     TokenType = "NUMBER"
+	IDENTIFIER Type = "IDENTIFIER"
+	STRING     Type = "STRING"
+	NUMBER     Type = "NUMBER"
 
-	AND    TokenType = "AND"
-	CLASS  TokenType = "CLASS"
-	ELSE   TokenType = "ELSE"
-	FALSE  TokenType = "FALSE"
-	FUN    TokenType = "FUN"
-	FOR    TokenType = "FOR"
-	IF     TokenType = "IF"
-	NIL    TokenType = "NIL"
-	OR     TokenType = "OR"
-	PRINT  TokenType = "PRINT"
-	RETURN TokenType = "RETURN"
-	SUPER  TokenType = "SUPER"
-	THIS   TokenType = "THIS"
-	TRUE   TokenType = "TRUE"
-	VAR    TokenType = "VAR"
-	WHILE  TokenType = "WHILE"
+	AND    Type = "AND"
+	CLASS  Type = "CLASS"
+	ELSE   Type = "ELSE"
+	FALSE  Type = "FALSE"
+	FUN    Type = "FUN"
+	FOR    Type = "FOR"
+	IF     Type = "IF"
+	NIL    Type = "NIL"
+	OR     Type = "OR"
+	PRINT  Type = "PRINT"
+	RETURN Type = "RETURN"
+	SUPER  Type = "SUPER"
+	THIS   Type = "THIS"
+	TRUE   Type = "TRUE"
+	VAR    Type = "VAR"
+	WHILE  Type = "WHILE"
 
-	EOF TokenType = "EOF"
+	EOF Type = "EOF"
 
 	// IGNORE is assigned to tokens that are not needed for the interpreter
 	// e.g. whitespace, comments...
-	IGNORE TokenType = "IGNORE"
+	IGNORE Type = "IGNORE"
 )
 
 type Token struct {
-	Type    TokenType
+	Type    Type
 	Lexeme  string
 	Literal any
 	// Line Number

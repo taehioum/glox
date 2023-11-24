@@ -14,19 +14,28 @@ func TestScannerValidCode(t *testing.T) {
 		desc     string
 	}{
 		{
-			input: `
-			`,
+			input: ``,
 			expected: []token.Token{
 				{
 					Type: token.EOF,
 					Ln:   1,
 				},
 			},
-			desc: "empty file",
+			desc: "empty file, no newline at end",
 		},
 		{
 			input: `
-				123
+			`,
+			expected: []token.Token{
+				{
+					Type: token.EOF,
+					Ln:   2,
+				},
+			},
+			desc: "empty file with newline",
+		},
+		{
+			input: `123
 			`,
 			expected: []token.Token{
 				{
@@ -43,8 +52,23 @@ func TestScannerValidCode(t *testing.T) {
 			desc: "a number",
 		},
 		{
-			input: `
-				var x=3.3
+			input: "123",
+			expected: []token.Token{
+				{
+					Type:    token.NUMBER,
+					Lexeme:  "123",
+					Literal: float64(123),
+					Ln:      1,
+				},
+				{
+					Type: token.EOF,
+					Ln:   1,
+				},
+			},
+			desc: "a number, no newline",
+		},
+		{
+			input: `var x=3.3
 			`,
 			expected: []token.Token{
 				{
@@ -76,8 +100,7 @@ func TestScannerValidCode(t *testing.T) {
 			desc: "var assignment (number)",
 		},
 		{
-			input: `
-				var x=3.3
+			input: `var x=3.3
 				var y = 4
 				print x + y
 			`,
@@ -152,8 +175,7 @@ func TestScannerValidCode(t *testing.T) {
 			desc: "var assignment and addition",
 		},
 		{
-			input: `
-				print "hello"
+			input: `print "hello"
 			`,
 			expected: []token.Token{
 				{
@@ -175,8 +197,7 @@ func TestScannerValidCode(t *testing.T) {
 			desc: "print string",
 		},
 		{
-			input: `
-				if true {
+			input: `if true {
 					print "true"
 				} else {
 					print "false"
