@@ -1,4 +1,4 @@
-package scanner
+package token
 
 import "fmt"
 
@@ -57,39 +57,20 @@ const (
 	IGNORE TokenType = "IGNORE"
 )
 
-var keywords = map[string]TokenType{
-	"and":    AND,
-	"class":  CLASS,
-	"else":   ELSE,
-	"false":  FALSE,
-	"for":    FOR,
-	"fun":    FUN,
-	"if":     IF,
-	"nil":    NIL,
-	"or":     OR,
-	"print":  PRINT,
-	"return": RETURN,
-	"super":  SUPER,
-	"this":   THIS,
-	"true":   TRUE,
-	"var":    VAR,
-	"while":  WHILE,
-}
-
 type Token struct {
-	TokenType TokenType
-	Lexeme    string
-	Literal   any
+	Type    TokenType
+	Lexeme  string
+	Literal any
 	// Line Number
 	Ln int
 }
 
 func (t Token) String() string {
-	if t.TokenType == IDENTIFIER {
-		return fmt.Sprintf("%s %s", t.TokenType, t.Lexeme)
+	if t.Type == IDENTIFIER {
+		return fmt.Sprintf("%s %s", t.Type, t.Lexeme)
 	}
 	if t.Literal != nil {
-		return fmt.Sprintf("%s %v", t.TokenType, t.Literal)
+		return fmt.Sprintf("%s %v", t.Type, t.Literal)
 	}
-	return string(t.TokenType)
+	return string(t.Type)
 }

@@ -4,21 +4,22 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/taehioum/glox/pkg/token"
 )
 
 func TestScannerValidCode(t *testing.T) {
 	testCases := []struct {
 		input    string
-		expected []Token
+		expected []token.Token
 		desc     string
 	}{
 		{
 			input: `
 			`,
-			expected: []Token{
+			expected: []token.Token{
 				{
-					TokenType: EOF,
-					Ln:        1,
+					Type: token.EOF,
+					Ln:   1,
 				},
 			},
 			desc: "empty file",
@@ -27,16 +28,16 @@ func TestScannerValidCode(t *testing.T) {
 			input: `
 				123
 			`,
-			expected: []Token{
+			expected: []token.Token{
 				{
-					TokenType: NUMBER,
-					Lexeme:    "123",
-					Literal:   float64(123),
-					Ln:        1,
+					Type:    token.NUMBER,
+					Lexeme:  "123",
+					Literal: float64(123),
+					Ln:      1,
 				},
 				{
-					TokenType: EOF,
-					Ln:        2,
+					Type: token.EOF,
+					Ln:   2,
 				},
 			},
 			desc: "a number",
@@ -45,31 +46,31 @@ func TestScannerValidCode(t *testing.T) {
 			input: `
 				var x=3.3
 			`,
-			expected: []Token{
+			expected: []token.Token{
 				{
-					TokenType: VAR,
-					Lexeme:    "var",
-					Ln:        1,
+					Type:   token.VAR,
+					Lexeme: "var",
+					Ln:     1,
 				},
 				{
-					TokenType: IDENTIFIER,
-					Lexeme:    "x",
-					Ln:        1,
+					Type:   token.IDENTIFIER,
+					Lexeme: "x",
+					Ln:     1,
 				},
 				{
-					TokenType: EQUAL,
-					Lexeme:    "=",
-					Ln:        1,
+					Type:   token.EQUAL,
+					Lexeme: "=",
+					Ln:     1,
 				},
 				{
-					TokenType: NUMBER,
-					Lexeme:    "3.3",
-					Literal:   float64(3.3),
-					Ln:        1,
+					Type:    token.NUMBER,
+					Lexeme:  "3.3",
+					Literal: float64(3.3),
+					Ln:      1,
 				},
 				{
-					TokenType: EOF,
-					Ln:        2,
+					Type: token.EOF,
+					Ln:   2,
 				},
 			},
 			desc: "var assignment (number)",
@@ -80,72 +81,72 @@ func TestScannerValidCode(t *testing.T) {
 				var y = 4
 				print x + y
 			`,
-			expected: []Token{
+			expected: []token.Token{
 				{
-					TokenType: VAR,
-					Lexeme:    "var",
-					Ln:        1,
+					Type:   token.VAR,
+					Lexeme: "var",
+					Ln:     1,
 				},
 				{
-					TokenType: IDENTIFIER,
-					Lexeme:    "x",
-					Ln:        1,
+					Type:   token.IDENTIFIER,
+					Lexeme: "x",
+					Ln:     1,
 				},
 				{
-					TokenType: EQUAL,
-					Lexeme:    "=",
-					Ln:        1,
+					Type:   token.EQUAL,
+					Lexeme: "=",
+					Ln:     1,
 				},
 				{
-					TokenType: NUMBER,
-					Lexeme:    "3.3",
-					Literal:   float64(3.3),
-					Ln:        1,
+					Type:    token.NUMBER,
+					Lexeme:  "3.3",
+					Literal: float64(3.3),
+					Ln:      1,
 				},
 				{
-					TokenType: VAR,
-					Lexeme:    "var",
-					Ln:        2,
+					Type:   token.VAR,
+					Lexeme: "var",
+					Ln:     2,
 				},
 				{
-					TokenType: IDENTIFIER,
-					Lexeme:    "y",
-					Ln:        2,
+					Type:   token.IDENTIFIER,
+					Lexeme: "y",
+					Ln:     2,
 				},
 				{
-					TokenType: EQUAL,
-					Lexeme:    "=",
-					Ln:        2,
+					Type:   token.EQUAL,
+					Lexeme: "=",
+					Ln:     2,
 				},
 				{
-					TokenType: NUMBER,
-					Lexeme:    "4",
-					Literal:   float64(4),
-					Ln:        2,
+					Type:    token.NUMBER,
+					Lexeme:  "4",
+					Literal: float64(4),
+					Ln:      2,
 				},
 				{
-					TokenType: PRINT,
-					Lexeme:    "print",
-					Ln:        3,
+					Type:   token.PRINT,
+					Lexeme: "print",
+					Ln:     3,
 				},
 				{
-					TokenType: IDENTIFIER,
-					Lexeme:    "x",
-					Ln:        3,
+					Type:   token.IDENTIFIER,
+					Lexeme: "x",
+					Ln:     3,
 				},
 				{
-					TokenType: PLUS,
-					Lexeme:    "+",
-					Ln:        3,
+					Type:   token.PLUS,
+					Lexeme: "+",
+					Ln:     3,
 				},
 				{
-					TokenType: IDENTIFIER,
-					Lexeme:    "y",
-					Ln:        3,
+					Type:   token.IDENTIFIER,
+					Lexeme: "y",
+					Ln:     3,
 				},
 				{
-					TokenType: EOF,
-					Ln:        4,
+					Type: token.EOF,
+					Ln:   4,
 				},
 			},
 			desc: "var assignment and addition",
@@ -154,21 +155,21 @@ func TestScannerValidCode(t *testing.T) {
 			input: `
 				print "hello"
 			`,
-			expected: []Token{
+			expected: []token.Token{
 				{
-					TokenType: PRINT,
-					Lexeme:    "print",
-					Ln:        1,
+					Type:   token.PRINT,
+					Lexeme: "print",
+					Ln:     1,
 				},
 				{
-					TokenType: STRING,
-					Lexeme:    "\"hello\"",
-					Literal:   "hello",
-					Ln:        1,
+					Type:    token.STRING,
+					Lexeme:  "\"hello\"",
+					Literal: "hello",
+					Ln:      1,
 				},
 				{
-					TokenType: EOF,
-					Ln:        2,
+					Type: token.EOF,
+					Ln:   2,
 				},
 			},
 			desc: "print string",
@@ -181,67 +182,67 @@ func TestScannerValidCode(t *testing.T) {
 					print "false"
 				}
 			`,
-			expected: []Token{
+			expected: []token.Token{
 				{
-					TokenType: IF,
-					Lexeme:    "if",
-					Ln:        1,
+					Type:   token.IF,
+					Lexeme: "if",
+					Ln:     1,
 				},
 				{
-					TokenType: TRUE,
-					Lexeme:    "true",
-					Ln:        1,
+					Type:   token.TRUE,
+					Lexeme: "true",
+					Ln:     1,
 				},
 				{
-					TokenType: LEFTBRACE,
-					Lexeme:    "{",
-					Ln:        1,
+					Type:   token.LEFTBRACE,
+					Lexeme: "{",
+					Ln:     1,
 				},
 				{
-					TokenType: PRINT,
-					Lexeme:    "print",
-					Ln:        2,
+					Type:   token.PRINT,
+					Lexeme: "print",
+					Ln:     2,
 				},
 				{
-					TokenType: STRING,
-					Lexeme:    "\"true\"",
-					Literal:   "true",
-					Ln:        2,
+					Type:    token.STRING,
+					Lexeme:  "\"true\"",
+					Literal: "true",
+					Ln:      2,
 				},
 				{
-					TokenType: RIGHTBRACE,
-					Lexeme:    "}",
-					Ln:        3,
+					Type:   token.RIGHTBRACE,
+					Lexeme: "}",
+					Ln:     3,
 				},
 				{
-					TokenType: ELSE,
-					Lexeme:    "else",
-					Ln:        3,
+					Type:   token.ELSE,
+					Lexeme: "else",
+					Ln:     3,
 				},
 				{
-					TokenType: LEFTBRACE,
-					Lexeme:    "{",
-					Ln:        3,
+					Type:   token.LEFTBRACE,
+					Lexeme: "{",
+					Ln:     3,
 				},
 				{
-					TokenType: PRINT,
-					Lexeme:    "print",
-					Ln:        4,
+					Type:   token.PRINT,
+					Lexeme: "print",
+					Ln:     4,
 				},
 				{
-					TokenType: STRING,
-					Lexeme:    "\"false\"",
-					Literal:   "false",
-					Ln:        4,
+					Type:    token.STRING,
+					Lexeme:  "\"false\"",
+					Literal: "false",
+					Ln:      4,
 				},
 				{
-					TokenType: RIGHTBRACE,
-					Lexeme:    "}",
-					Ln:        5,
+					Type:   token.RIGHTBRACE,
+					Lexeme: "}",
+					Ln:     5,
 				},
 				{
-					TokenType: EOF,
-					Ln:        6,
+					Type: token.EOF,
+					Ln:   6,
 				},
 			},
 			desc: "print string",

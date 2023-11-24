@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"strconv"
 	"unicode"
+
+	"github.com/taehioum/glox/pkg/token"
 )
 
 type Scanner struct {
 	source    string
-	currToken Token
+	currToken token.Token
 	errors    []error
 
 	start int
@@ -26,10 +28,10 @@ func NewScanner(source string) Scanner {
 	}
 }
 
-func ScanTokens(source string) ([]Token, error) {
+func ScanTokens(source string) ([]token.Token, error) {
 	sc := NewScanner(source)
 
-	var tokens []Token
+	var tokens []token.Token
 	for sc.Next() {
 		tok := sc.Get()
 		tokens = append(tokens, tok)
@@ -44,7 +46,7 @@ func ScanTokens(source string) ([]Token, error) {
 func (sc *Scanner) Next() bool {
 	sc.start = sc.curr
 	if sc.curr >= len(sc.source) {
-		sc.currToken = Token{TokenType: EOF, Lexeme: sc.lexeme(), Ln: sc.line}
+		sc.currToken = token.Token{Type: token.EOF, Lexeme: sc.lexeme(), Ln: sc.line}
 		return false
 	}
 
@@ -52,48 +54,48 @@ func (sc *Scanner) Next() bool {
 
 	switch c {
 	case '(':
-		sc.currToken = Token{TokenType: LEFTPAREN, Lexeme: sc.lexeme(), Ln: sc.line}
+		sc.currToken = token.Token{Type: token.LEFTPAREN, Lexeme: sc.lexeme(), Ln: sc.line}
 	case ')':
-		sc.currToken = Token{TokenType: RIGHTPAREN, Lexeme: sc.lexeme(), Ln: sc.line}
+		sc.currToken = token.Token{Type: token.RIGHTPAREN, Lexeme: sc.lexeme(), Ln: sc.line}
 	case '{':
-		sc.currToken = Token{TokenType: LEFTBRACE, Lexeme: sc.lexeme(), Ln: sc.line}
+		sc.currToken = token.Token{Type: token.LEFTBRACE, Lexeme: sc.lexeme(), Ln: sc.line}
 	case '}':
-		sc.currToken = Token{TokenType: RIGHTBRACE, Lexeme: sc.lexeme(), Ln: sc.line}
+		sc.currToken = token.Token{Type: token.RIGHTBRACE, Lexeme: sc.lexeme(), Ln: sc.line}
 	case ',':
-		sc.currToken = Token{TokenType: COMMA, Lexeme: sc.lexeme(), Ln: sc.line}
+		sc.currToken = token.Token{Type: token.COMMA, Lexeme: sc.lexeme(), Ln: sc.line}
 	case '.':
-		sc.currToken = Token{TokenType: DOT, Lexeme: sc.lexeme(), Ln: sc.line}
+		sc.currToken = token.Token{Type: token.DOT, Lexeme: sc.lexeme(), Ln: sc.line}
 	case '-':
-		sc.currToken = Token{TokenType: MINUS, Lexeme: sc.lexeme(), Ln: sc.line}
+		sc.currToken = token.Token{Type: token.MINUS, Lexeme: sc.lexeme(), Ln: sc.line}
 	case '+':
-		sc.currToken = Token{TokenType: PLUS, Lexeme: sc.lexeme(), Ln: sc.line}
+		sc.currToken = token.Token{Type: token.PLUS, Lexeme: sc.lexeme(), Ln: sc.line}
 	case '*':
-		sc.currToken = Token{TokenType: STAR, Lexeme: sc.lexeme(), Ln: sc.line}
+		sc.currToken = token.Token{Type: token.STAR, Lexeme: sc.lexeme(), Ln: sc.line}
 	case ';':
-		sc.currToken = Token{TokenType: SEMICOLON, Lexeme: sc.lexeme(), Ln: sc.line}
+		sc.currToken = token.Token{Type: token.SEMICOLON, Lexeme: sc.lexeme(), Ln: sc.line}
 	case '!':
 		if sc.match('=') {
-			sc.currToken = Token{TokenType: BANGEQUAL, Lexeme: sc.lexeme(), Ln: sc.line}
+			sc.currToken = token.Token{Type: token.BANGEQUAL, Lexeme: sc.lexeme(), Ln: sc.line}
 		} else {
-			sc.currToken = Token{TokenType: BANG, Lexeme: sc.lexeme(), Ln: sc.line}
+			sc.currToken = token.Token{Type: token.BANG, Lexeme: sc.lexeme(), Ln: sc.line}
 		}
 	case '=':
 		if sc.match('=') {
-			sc.currToken = Token{TokenType: EQUALEQUAL, Lexeme: sc.lexeme(), Ln: sc.line}
+			sc.currToken = token.Token{Type: token.EQUALEQUAL, Lexeme: sc.lexeme(), Ln: sc.line}
 		} else {
-			sc.currToken = Token{TokenType: EQUAL, Lexeme: sc.lexeme(), Ln: sc.line}
+			sc.currToken = token.Token{Type: token.EQUAL, Lexeme: sc.lexeme(), Ln: sc.line}
 		}
 	case '<':
 		if sc.match('=') {
-			sc.currToken = Token{TokenType: LESSEQUAL, Lexeme: sc.lexeme(), Ln: sc.line}
+			sc.currToken = token.Token{Type: token.LESSEQUAL, Lexeme: sc.lexeme(), Ln: sc.line}
 		} else {
-			sc.currToken = Token{TokenType: LESS, Lexeme: sc.lexeme(), Ln: sc.line}
+			sc.currToken = token.Token{Type: token.LESS, Lexeme: sc.lexeme(), Ln: sc.line}
 		}
 	case '>':
 		if sc.match('=') {
-			sc.currToken = Token{TokenType: GREATEREQUAL, Lexeme: sc.lexeme(), Ln: sc.line}
+			sc.currToken = token.Token{Type: token.GREATEREQUAL, Lexeme: sc.lexeme(), Ln: sc.line}
 		} else {
-			sc.currToken = Token{TokenType: GREATER, Lexeme: sc.lexeme(), Ln: sc.line}
+			sc.currToken = token.Token{Type: token.GREATER, Lexeme: sc.lexeme(), Ln: sc.line}
 		}
 	case '/':
 		if sc.match('/') { // a comment string
@@ -104,44 +106,44 @@ func (sc *Scanner) Next() bool {
 				}
 				sc.advance()
 			}
-			sc.currToken = Token{TokenType: IGNORE, Lexeme: "", Ln: sc.line}
+			sc.currToken = token.Token{Type: token.IGNORE, Lexeme: "", Ln: sc.line}
 		} else {
-			sc.currToken = Token{TokenType: SLASH, Lexeme: sc.lexeme(), Ln: sc.line}
+			sc.currToken = token.Token{Type: token.SLASH, Lexeme: sc.lexeme(), Ln: sc.line}
 		}
 	case ' ', '\r', '\t':
-		sc.currToken = Token{TokenType: IGNORE, Ln: sc.line}
+		sc.currToken = token.Token{Type: token.IGNORE, Ln: sc.line}
 	case '\n':
 		sc.line++
-		sc.currToken = Token{TokenType: IGNORE, Ln: sc.line}
+		sc.currToken = token.Token{Type: token.IGNORE, Ln: sc.line}
 	case '"':
 		val, err := sc.readString()
 		if err != nil {
 			sc.errors = append(sc.errors, err)
-			sc.currToken = Token{TokenType: IGNORE, Ln: sc.line}
+			sc.currToken = token.Token{Type: token.IGNORE, Ln: sc.line}
 		}
-		sc.currToken = Token{TokenType: STRING, Lexeme: sc.lexeme(), Literal: val, Ln: sc.line}
+		sc.currToken = token.Token{Type: token.STRING, Lexeme: sc.lexeme(), Literal: val, Ln: sc.line}
 	// numbers
 	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		val, err := sc.readNumber()
 		if err != nil {
 			sc.errors = append(sc.errors, err)
-			sc.currToken = Token{TokenType: IGNORE, Ln: sc.line}
+			sc.currToken = token.Token{Type: token.IGNORE, Ln: sc.line}
 		}
-		sc.currToken = Token{TokenType: NUMBER, Lexeme: sc.lexeme(), Literal: val, Ln: sc.line}
+		sc.currToken = token.Token{Type: token.NUMBER, Lexeme: sc.lexeme(), Literal: val, Ln: sc.line}
 	default:
 		if unicode.IsLetter(rune(c)) {
 			tok := sc.readIdentifierOrKeyword()
-			sc.currToken = Token{TokenType: tok, Lexeme: sc.lexeme(), Ln: sc.line}
+			sc.currToken = token.Token{Type: tok, Lexeme: sc.lexeme(), Ln: sc.line}
 		} else {
 			sc.errors = append(sc.errors, fmt.Errorf("unexpected character: %c", c))
-			sc.currToken = Token{TokenType: IGNORE, Ln: sc.line}
+			sc.currToken = token.Token{Type: token.IGNORE, Ln: sc.line}
 		}
 	}
 	return true
 }
 
 // readIdentifierOrKeyword consumes the rest of the identifier / keyword by advancing.
-func (sc *Scanner) readIdentifierOrKeyword() TokenType {
+func (sc *Scanner) readIdentifierOrKeyword() token.TokenType {
 	for (unicode.IsLetter(rune(sc.peek())) || unicode.IsDigit(rune(sc.peek()))) && !sc.atEnd() {
 		sc.advance()
 	}
@@ -150,7 +152,7 @@ func (sc *Scanner) readIdentifierOrKeyword() TokenType {
 	if keyword, ok := keywords[text]; ok {
 		return keyword
 	}
-	return IDENTIFIER
+	return token.IDENTIFIER
 }
 
 // readString consumes the rest of the string by advancing, and returns its literal value
@@ -214,9 +216,9 @@ func (sc *Scanner) match(expected byte) bool {
 
 // Get returns a valid token.
 // If the current token is IGNORE, it skips it and returns the next valid token.
-func (sc *Scanner) Get() Token {
+func (sc *Scanner) Get() token.Token {
 	// skip until we don't have an IGNORE token
-	for sc.currToken.TokenType == IGNORE && sc.Next() {
+	for sc.currToken.Type == token.IGNORE && sc.Next() {
 	}
 	return sc.currToken
 }
@@ -248,4 +250,23 @@ func (sc *Scanner) atEnd() bool {
 
 func (sc *Scanner) lexeme() string {
 	return sc.source[sc.start:sc.curr]
+}
+
+var keywords = map[string]token.TokenType{
+	"and":    token.AND,
+	"class":  token.CLASS,
+	"else":   token.ELSE,
+	"false":  token.FALSE,
+	"for":    token.FOR,
+	"fun":    token.FUN,
+	"if":     token.IF,
+	"nil":    token.NIL,
+	"or":     token.OR,
+	"print":  token.PRINT,
+	"return": token.RETURN,
+	"super":  token.SUPER,
+	"this":   token.THIS,
+	"true":   token.TRUE,
+	"var":    token.VAR,
+	"while":  token.WHILE,
 }
