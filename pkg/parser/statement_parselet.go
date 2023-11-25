@@ -12,16 +12,18 @@ func (p StatementParselet) parse(parser *Parser, tok token.Token) (statements.St
 	if err != nil {
 		return nil, err
 	}
-
-	_, err = parser.consumeAndCheck(token.SEMICOLON, "expected ';' after expression")
-	if err != nil {
-		return nil, err
-	}
-
 	switch tok.Type {
 	case token.PRINT:
+		_, err = parser.consumeAndCheck(token.SEMICOLON, "expected ';' after value")
+		if err != nil {
+			return nil, err
+		}
 		return statements.Print{Expr: expr}, nil
 	default:
+		_, err = parser.consumeAndCheck(token.SEMICOLON, "expected ';' after expression")
+		if err != nil {
+			return nil, err
+		}
 		return statements.Expression{Expr: expr}, nil
 	}
 }

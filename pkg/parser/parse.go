@@ -35,6 +35,7 @@ var prefixPraseletsbyTokenType = map[token.Type]PrefixParselet{
 
 var infixPraseletsbyTokenType = map[token.Type]InfixParselet{
 	token.PLUS:         TermParselet{},
+	token.MINUS:        TermParselet{},
 	token.STAR:         FactorParselet{},
 	token.SLASH:        FactorParselet{},
 	token.EQUALEQUAL:   EqualityParselet{},
