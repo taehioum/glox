@@ -26,6 +26,7 @@ var prefixPraseletsbyTokenType = map[token.Type]PrefixParselet{
 	token.MINUS:     UnaryOperatorParselet{},
 	token.BANG:      UnaryOperatorParselet{},
 	token.NUMBER:    LiteralParselet{},
+	token.STRING:    LiteralParselet{},
 	token.TRUE:      BoolParselet{},
 	token.FALSE:     BoolParselet{},
 	token.LEFTPAREN: GroupParselet{},

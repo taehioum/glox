@@ -55,6 +55,11 @@ func TestParser(t *testing.T) {
 			out:  "(> (* 3 10) 20)",
 			desc: "comparison",
 		},
+		{
+			in:   "\"hello\" + \"world\"",
+			out:  "(+ hello world)",
+			desc: "plus strings",
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
