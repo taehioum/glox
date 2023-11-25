@@ -1,82 +1,104 @@
 package parser
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/taehioum/glox/pkg/expressions"
-	"github.com/taehioum/glox/pkg/token"
+	pprint "github.com/taehioum/glox/pkg/printer"
+	"github.com/taehioum/glox/pkg/scanner"
 )
 
-func Test(t *testing.T) {
+func TestParser(t *testing.T) {
 	testCases := []struct {
-		in   []token.Token
-		out  expressions.Expr
+		in   string
+		out  string
 		desc string
 	}{
 		{
-			in: []token.Token{
-				{
-					Type:    token.NUMBER,
-					Literal: 123,
-					Lexeme:  "123",
-					Ln:      1,
-				},
-				{
-					Type: token.EOF,
-					Ln:   2,
-				},
-			},
-			out: expressions.Literal{
-				Value: 123,
-			},
-			desc: "a number",
+			in:   "-1",
+			out:  "(- 1)",
+			desc: "unary minus",
 		},
 		{
-			in: []token.Token{
-				{
-					Type:    token.NUMBER,
-					Literal: 123,
-					Lexeme:  "123",
-					Ln:      1,
-				},
-				{
-					Type:   token.PLUS,
-					Lexeme: "+",
-					Ln:     1,
-				},
-				{
-					Type:    token.NUMBER,
-					Literal: 10,
-					Lexeme:  "123",
-					Ln:      1,
-				},
-				{
-					Type: token.EOF,
-					Ln:   2,
-				},
-			},
-			out: expressions.Binary{
-				Left: expressions.Literal{
-					Value: 123,
-				},
-				Operator: token.Token{
-					Type:   token.PLUS,
-					Lexeme: "+",
-					Ln:     1,
-				},
-				Right: expressions.Literal{
-					Value: 10,
-				},
-			},
-			desc: "123 + 10",
+			in:   "!true",
+			out:  "(! true)",
+			desc: "unary bool",
+		},
+		{
+			in:   "1 + 3",
+			out:  "(+ 1 3)",
+			desc: "infix plus",
+		},
+		{
+			in:   "1 + 2 * 3",
+			out:  "(+ 1 (* 2 3))",
+			desc: "plus and multiply: test precedence.",
+		},
+		{
+			in:   "-1 + 3",
+			out:  "(+ (- 1) 3)",
+			desc: "prefix minus, infix plus: test precedence.",
+		},
+		{
+			in:   "(1 + 3) * 10",
+			out:  "(* (group (+ 1 3)) 10)",
+			desc: "grouping",
+		},
+		{
+			in:   "!true == false",
+			out:  "(== (! true) false)",
+			desc: "bool",
+		},
+		{
+			in:   "3 * 10 > 20",
+			out:  "(> (* 3 10) 20)",
+			desc: "comparison",
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.desc, func(t *testing.T) {
-			expr, err := Parse(tc.in)
+			tokens, err := scanner.ScanTokens(tc.in)
 			assert.NoError(t, err)
-			assert.Equal(t, tc.out, expr)
+
+			parser := Parser{
+				tokens: tokens,
+				curr:   0,
+			}
+			expr, err := parser.Parse()
+			assert.NoError(t, err)
+
+			assert.Equal(t, tc.out, pprint.Print(expr))
+		})
+	}
+}
+
+func TestParserWithErrors(t *testing.T) {
+	testCases := []struct {
+		in   string
+		desc string
+	}{
+		{
+			in:   "-",
+			desc: "unary minus; no operand",
+		},
+		{
+			in:   "(1 + 2",
+			desc: "no right paren",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.desc, func(t *testing.T) {
+			tokens, err := scanner.ScanTokens(tc.in)
+			assert.NoError(t, err)
+
+			parser := Parser{
+				tokens: tokens,
+				curr:   0,
+			}
+			_, err = parser.Parse()
+			fmt.Println(err)
+			assert.Error(t, err)
 		})
 	}
 }
