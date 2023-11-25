@@ -4,18 +4,39 @@ import (
 	"fmt"
 
 	"github.com/taehioum/glox/pkg/expressions"
+	"github.com/taehioum/glox/pkg/statements"
 	"github.com/taehioum/glox/pkg/token"
 )
 
 type Interpreter struct {
 }
 
-func Interprete(e expressions.Expr) (any, error) {
+func Interprete(stmts ...statements.Stmt) error {
 	i := Interpreter{}
-	return i.Interprete(e)
+	for _, stmt := range stmts {
+		err := stmt.Accept(i.Interprete)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func (i *Interpreter) Interprete(e expressions.Expr) (any, error) {
+func (i *Interpreter) Interprete(s statements.Stmt) error {
+	switch s := s.(type) {
+	case statements.Print:
+		v, err := i.evaluate(s.Expr)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("%v\n", v)
+		return nil
+	default:
+		panic(fmt.Sprintf("unknown statement %T", s))
+	}
+}
+
+func (i *Interpreter) evaluate(e expressions.Expr) (any, error) {
 	switch e := e.(type) {
 	case expressions.Literal:
 		return e.Value, nil
@@ -100,7 +121,7 @@ func (i *Interpreter) Interprete(e expressions.Expr) (any, error) {
 }
 
 func (i *Interpreter) eval(e expressions.Expr) (any, error) {
-	return e.Accept(i.Interprete)
+	return e.Accept(i.evaluate)
 }
 
 // TODO: we might return type checked value, so we don't have to type check twice.

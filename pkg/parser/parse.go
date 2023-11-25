@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/taehioum/glox/pkg/expressions"
+	"github.com/taehioum/glox/pkg/statements"
 	"github.com/taehioum/glox/pkg/token"
 )
 
@@ -44,21 +45,32 @@ var infixPraseletsbyTokenType = map[token.Type]InfixParselet{
 	token.GREATEREQUAL: ComparsionParselet{},
 }
 
-func Parse(tokens []token.Token) (expressions.Expr, error) {
+func Parse(tokens []token.Token) ([]statements.Stmt, error) {
 	parser := Parser{
 		tokens: tokens,
 		curr:   0,
 	}
-	expr, err := parser.Parse()
-	return expr, err
+	stmts, err := parser.Parse()
+	return stmts, err
 }
 
-func (p *Parser) Parse() (expressions.Expr, error) {
-	expr, err := p.parse(0)
-	return expr, err
+func (p *Parser) Parse() ([]statements.Stmt, error) {
+	parselet := StatementParselet{}
+
+	var stmts []statements.Stmt
+	for !p.isAtEnd() {
+		tok := p.consume()
+		stmt, err := parselet.parse(p, tok)
+		if err != nil {
+			return stmts, err
+		}
+		stmts = append(stmts, stmt)
+	}
+
+	return stmts, nil
 }
 
-func (p *Parser) parse(precendence Precedence) (expressions.Expr, error) {
+func (p *Parser) parseExpr(precendence Precedence) (expressions.Expr, error) {
 	tok := p.consume()
 
 	prefix, ok := prefixPraseletsbyTokenType[tok.Type]

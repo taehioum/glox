@@ -11,7 +11,7 @@ type UnaryOperatorParselet struct {
 }
 
 func (uop UnaryOperatorParselet) parse(parser *Parser, token token.Token) (expressions.Expr, error) {
-	expr, err := parser.parse(PrecedenceUnary)
+	expr, err := parser.parseExpr(PrecedenceUnary)
 	return expressions.Unary{
 		Operator: token,
 		Right:    expr,
@@ -44,7 +44,7 @@ func (bp BoolParselet) parse(parser *Parser, tok token.Token) (expressions.Expr,
 type GroupParselet struct{}
 
 func (p GroupParselet) parse(parser *Parser, tok token.Token) (expressions.Expr, error) {
-	expr, err := parser.parse(0)
+	expr, err := parser.parseExpr(0)
 	if err != nil {
 		return expr, err
 	}

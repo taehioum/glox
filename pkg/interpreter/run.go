@@ -50,16 +50,15 @@ func (i *Runner) run(source string) error {
 		return fmt.Errorf("running: %w", err)
 	}
 
-	exprs, err := parser.Parse(tokens)
+	stmts, err := parser.Parse(tokens)
 	if err != nil {
 		return fmt.Errorf("running: %w", err)
 	}
 
-	res, err := Interprete(exprs)
+	err = Interprete(stmts...)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("%v\n", res)
 	return nil
 }

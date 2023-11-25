@@ -8,7 +8,7 @@ import (
 type TermParselet struct{}
 
 func (p TermParselet) parse(parser *Parser, left expressions.Expr, token token.Token) (expressions.Expr, error) {
-	expr, err := parser.parse(PrecedenceTerm)
+	expr, err := parser.parseExpr(PrecedenceTerm)
 	return expressions.Binary{
 		Left:     left,
 		Operator: token,
@@ -23,7 +23,7 @@ func (p TermParselet) precedence() Precedence {
 type FactorParselet struct{}
 
 func (p FactorParselet) parse(parser *Parser, left expressions.Expr, token token.Token) (expressions.Expr, error) {
-	expr, err := parser.parse(PrecedenceFactor)
+	expr, err := parser.parseExpr(PrecedenceFactor)
 	return expressions.Binary{
 		Left:     left,
 		Operator: token,
@@ -38,7 +38,7 @@ func (p FactorParselet) precedence() Precedence {
 type ComparsionParselet struct{}
 
 func (p ComparsionParselet) parse(parser *Parser, left expressions.Expr, token token.Token) (expressions.Expr, error) {
-	expr, err := parser.parse(PrecedenceComparison)
+	expr, err := parser.parseExpr(PrecedenceComparison)
 	return expressions.Binary{
 		Left:     left,
 		Operator: token,
@@ -53,7 +53,7 @@ func (p ComparsionParselet) precedence() Precedence {
 type EqualityParselet struct{}
 
 func (p EqualityParselet) parse(parser *Parser, left expressions.Expr, token token.Token) (expressions.Expr, error) {
-	expr, err := parser.parse(PrecedenceEquality)
+	expr, err := parser.parseExpr(PrecedenceEquality)
 	return expressions.Binary{
 		Left:     left,
 		Operator: token,
