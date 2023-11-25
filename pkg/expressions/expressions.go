@@ -3,10 +3,10 @@ package expressions
 
 import "github.com/taehioum/glox/pkg/token"
 
-type Visitor func(Expr) any
+type Visitor func(Expr) (any, error)
 
 type Expr interface {
-	Accept(Visitor) any
+	Accept(Visitor) (any, error)
 }
 
 type Binary struct {
@@ -15,7 +15,7 @@ type Binary struct {
 	Right Expr
 }
 
-func (expr Binary) Accept(v Visitor) any {
+func (expr Binary) Accept(v Visitor) (any, error) {
 	return v(expr)
 }
 
@@ -23,7 +23,7 @@ type Grouping struct {
 	Expr Expr
 }
 
-func (expr Grouping) Accept(v Visitor) any {
+func (expr Grouping) Accept(v Visitor) (any, error) {
 	return v(expr)
 }
 
@@ -31,7 +31,7 @@ type Literal struct {
 	Value any
 }
 
-func (expr Literal) Accept(v Visitor) any {
+func (expr Literal) Accept(v Visitor) (any, error) {
 	return v(expr)
 }
 
@@ -40,6 +40,6 @@ type Unary struct {
 	Right Expr
 }
 
-func (expr Unary) Accept(v Visitor) any {
+func (expr Unary) Accept(v Visitor) (any, error) {
 	return v(expr)
 }

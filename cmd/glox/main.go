@@ -15,7 +15,7 @@ func main() {
 		os.Exit(64)
 	}
 
-	i := interpreter.Interpreter{}
+	i := interpreter.Runner{}
 
 	var err error
 	if len(args) == 1 {

@@ -6,15 +6,14 @@ import (
 	"os"
 
 	"github.com/taehioum/glox/pkg/parser"
-	pprint "github.com/taehioum/glox/pkg/printer"
 	"github.com/taehioum/glox/pkg/scanner"
 )
 
-type Interpreter struct {
+type Runner struct {
 	// HadError bool
 }
 
-func (i *Interpreter) Runfile(path string) error {
+func (i *Runner) Runfile(path string) error {
 	contents, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("running file: %w", err)
@@ -23,7 +22,7 @@ func (i *Interpreter) Runfile(path string) error {
 	return i.run(string(contents))
 }
 
-func (i *Interpreter) RunPrompt() error {
+func (i *Runner) RunPrompt() error {
 	sc := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("> ")
@@ -31,10 +30,10 @@ func (i *Interpreter) RunPrompt() error {
 		if !b {
 			break
 		}
-		fmt.Println(sc.Text())
 		err := i.run(sc.Text())
 		if err != nil {
-			return fmt.Errorf("running prompt: %w", err)
+			// return fmt.Errorf("running prompt: %w", err)
+			fmt.Printf("running prompt %s: %s\n", sc.Text(), err)
 		}
 	}
 
@@ -45,7 +44,7 @@ func (i *Interpreter) RunPrompt() error {
 }
 
 // the main logic
-func (i *Interpreter) run(source string) error {
+func (i *Runner) run(source string) error {
 	tokens, err := scanner.ScanTokens(source)
 	if err != nil {
 		return fmt.Errorf("running: %w", err)
@@ -56,8 +55,11 @@ func (i *Interpreter) run(source string) error {
 		return fmt.Errorf("running: %w", err)
 	}
 
-	s := pprint.Print(exprs)
-	fmt.Println(s)
+	res, err := Interprete(exprs)
+	if err != nil {
+		return err
+	}
 
+	fmt.Printf("%v\n", res)
 	return nil
 }

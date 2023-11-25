@@ -13,10 +13,10 @@ package expressions
 
 import "github.com/taehioum/glox/pkg/token"
 
-type Visitor func(Expr) any
+type Visitor func(Expr) (any, error)
 
 type Expr interface {
-	Accept(Visitor) any
+	Accept(Visitor) (any, error)
 }
 {{range .}}
 type {{.Name}} struct {
@@ -25,7 +25,7 @@ type {{.Name}} struct {
 	{{- end}}
 }
 
-func (expr {{.Name}}) Accept(v Visitor) any {
+func (expr {{.Name}}) Accept(v Visitor) (any, error) {
 	return v(expr)
 }
 {{end}}`))
