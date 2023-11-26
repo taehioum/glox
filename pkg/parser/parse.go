@@ -40,6 +40,16 @@ type PrefixParselet interface {
 	parse(parser *Parser, token token.Token) (expressions.Expr, error)
 }
 
+type StatementParselet interface {
+	parse(parser *Parser) (statements.Stmt, error)
+}
+
+var statementParselets = map[token.Type]StatementParselet{
+	token.LEFTBRACE: BlockStatementParselet{},
+	token.PRINT:     PrintStatmentParselet{},
+	token.VAR:       DeclarationStatementParselet{},
+}
+
 var prefixPraseletsbyTokenType = map[token.Type]PrefixParselet{
 	token.PLUS:       UnaryOperatorParselet{},
 	token.MINUS:      UnaryOperatorParselet{},
@@ -89,7 +99,11 @@ func (p *Parser) Parse() ([]statements.Stmt, error) {
 }
 
 func (p *Parser) parseSingleStatement() (statements.Stmt, error) {
-	parselet := StatementParselet{}
+	tok := p.peek()
+	parselet, ok := statementParselets[tok.Type]
+	if !ok { // the default parselet for statments is expression statement
+		return ExpressionStatementParselet{}.parse(p)
+	}
 	return parselet.parse(p)
 }
 
