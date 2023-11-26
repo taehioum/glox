@@ -1,6 +1,9 @@
 package parser
 
 import (
+	"fmt"
+	"log/slog"
+
 	"github.com/taehioum/glox/pkg/ast/expressions"
 	"github.com/taehioum/glox/pkg/token"
 )
@@ -63,4 +66,24 @@ func (p EqualityParselet) parse(parser *Parser, left expressions.Expr, token tok
 
 func (p EqualityParselet) precedence() Precedence {
 	return PrecedenceEquality
+}
+
+type AssignmentParselet struct{}
+
+func (p AssignmentParselet) parse(parser *Parser, left expressions.Expr, token token.Token) (expressions.Expr, error) {
+	slog.Debug("assignment parselet: ", "left", left)
+	expr, err := parser.parseExpr(PrecedenceAssignment - 1)
+
+	variable, ok := left.(expressions.Variable)
+	if !ok {
+		return nil, fmt.Errorf("line %d's %s: left hand side of assignment must be a variable", token.Ln, token.Lexeme)
+	}
+	return expressions.Assignment{
+		Name:  variable.Name,
+		Value: expr,
+	}, err
+}
+
+func (p AssignmentParselet) precedence() Precedence {
+	return PrecedenceAssignment
 }

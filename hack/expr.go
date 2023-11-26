@@ -32,10 +32,12 @@ func (expr {{.Name}}) Accept(v Visitor) (any, error) {
 
 func main() {
 	defineAst("expressions.go", []string{
+		"Assignment : Name token.Token, Value Expr",
 		"Binary   : Left Expr, Operator token.Token, Right Expr",
 		"Grouping : Expr Expr",
 		"Literal  : Value any",
 		"Unary    : Operator token.Token, Right Expr",
+		"Variable    : Name token.Token",
 	})
 }
 

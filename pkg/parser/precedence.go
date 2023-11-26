@@ -9,7 +9,8 @@ type Precedence int
  * precedence than "+" and "-". Here, bigger numbers mean higher precedence.
  */
 const (
-	PrecedenceEquality   Precedence = iota + 1 // == !=
+	PrecedenceAssignment Precedence = iota + 1 // =
+	PrecedenceEquality                         // == !=
 	PrecedenceComparison                       // > >= < <=
 	PrecedenceTerm                             // - +
 	PrecedenceFactor                           // / *

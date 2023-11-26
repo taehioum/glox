@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"fmt"
+	"log/slog"
 
 	"github.com/taehioum/glox/pkg/ast/statements"
 	"github.com/taehioum/glox/pkg/token"
@@ -9,9 +9,12 @@ import (
 
 type StatementParselet struct{}
 
-func (p StatementParselet) parse(parser *Parser, tok token.Token) (statements.Stmt, error) {
+// TODO: split the switch statement into separate parselets
+func (p StatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+	tok := parser.peek()
 	switch tok.Type {
 	case token.VAR:
+		parser.consume()
 		name, err := parser.consumeAndCheck(token.IDENTIFIER, "Expect variable name.")
 		if err != nil {
 			return nil, err
@@ -19,7 +22,6 @@ func (p StatementParselet) parse(parser *Parser, tok token.Token) (statements.St
 		stmt := statements.Declaration{
 			Name: name,
 		}
-		fmt.Printf("%+v\n", stmt)
 
 		if parser.check(token.EQUAL) {
 			parser.consume()
@@ -37,6 +39,7 @@ func (p StatementParselet) parse(parser *Parser, tok token.Token) (statements.St
 
 		return stmt, nil
 	case token.PRINT:
+		parser.consume()
 		expr, err := parser.parseExpr(0)
 		if err != nil {
 			return nil, err
@@ -47,7 +50,24 @@ func (p StatementParselet) parse(parser *Parser, tok token.Token) (statements.St
 			return nil, err
 		}
 		return statements.Print{Expr: expr}, nil
+	case token.LEFTBRACE:
+		parser.consume()
+
+		var stmts []statements.Stmt
+		for !parser.isAtEnd() && !parser.check(token.RIGHTBRACE) {
+			stmt, err := parser.parseSingleStatement()
+			if err != nil {
+				return statements.Block{Stmts: stmts}, err
+			}
+			stmts = append(stmts, stmt)
+		}
+		_, err := parser.consumeAndCheck(token.RIGHTBRACE, "expected ';' after value")
+		if err != nil {
+			return statements.Block{Stmts: stmts}, err
+		}
+		return statements.Block{Stmts: stmts}, nil
 	default:
+		slog.Debug("default parse stmt")
 		expr, err := parser.parseExpr(0)
 		if err != nil {
 			return nil, err

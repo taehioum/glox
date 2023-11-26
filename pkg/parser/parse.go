@@ -13,11 +13,29 @@ type Parser struct {
 	curr   int
 }
 
+/**
+ * One of the two parselet interfaces used by the Pratt parser. An
+ * InfixParselet is associated with a token that appears in the middle of the
+ * expression it parses. Its parse() method will be called after the left-hand
+ * side has been parsed, and it in turn is responsible for parsing everything
+ * that comes after the token. This is also used for postfix expressions, in
+ * which case it simply doesn't consume any more tokens in its parse() call.
+ */
 type InfixParselet interface {
 	parse(parser *Parser, left expressions.Expr, token token.Token) (expressions.Expr, error)
 	precedence() Precedence
 }
 
+/**
+ * One of the two interfaces used by the Pratt parser. A PrefixParselet is
+ * associated with a token that appears at the beginning of an expression. Its
+ * parse() method will be called with the consumed leading token, and the
+ * parselet is responsible for parsing anything that comes after that token.
+ * This interface is also used for single-token expressions like variables, in
+ * which case parse() simply doesn't consume any more tokens.
+ * @author rnystrom
+ *
+ */
 type PrefixParselet interface {
 	parse(parser *Parser, token token.Token) (expressions.Expr, error)
 }
@@ -35,6 +53,7 @@ var prefixPraseletsbyTokenType = map[token.Type]PrefixParselet{
 }
 
 var infixPraseletsbyTokenType = map[token.Type]InfixParselet{
+	token.EQUAL:        AssignmentParselet{},
 	token.PLUS:         TermParselet{},
 	token.MINUS:        TermParselet{},
 	token.STAR:         FactorParselet{},
@@ -57,12 +76,9 @@ func Parse(tokens []token.Token) ([]statements.Stmt, error) {
 }
 
 func (p *Parser) Parse() ([]statements.Stmt, error) {
-	parselet := StatementParselet{}
-
 	var stmts []statements.Stmt
 	for !p.isAtEnd() {
-		tok := p.consume()
-		stmt, err := parselet.parse(p, tok)
+		stmt, err := p.parseSingleStatement()
 		if err != nil {
 			return stmts, err
 		}
@@ -72,12 +88,16 @@ func (p *Parser) Parse() ([]statements.Stmt, error) {
 	return stmts, nil
 }
 
+func (p *Parser) parseSingleStatement() (statements.Stmt, error) {
+	parselet := StatementParselet{}
+	return parselet.parse(p)
+}
+
 func (p *Parser) parseExpr(precendence Precedence) (expressions.Expr, error) {
 	tok := p.consume()
-
 	prefix, ok := prefixPraseletsbyTokenType[tok.Type]
 	if !ok {
-		return nil, fmt.Errorf("line %d's %s: no parselet for token type %s", tok.Ln, tok.Lexeme, tok.Type)
+		return nil, fmt.Errorf("line %d's %s: no prefix parselet for token type %s", tok.Ln, tok.Lexeme, tok.Type)
 	}
 
 	left, err := prefix.parse(p, tok)
@@ -90,7 +110,7 @@ func (p *Parser) parseExpr(precendence Precedence) (expressions.Expr, error) {
 
 		infix, ok := infixPraseletsbyTokenType[tok.Type]
 		if !ok {
-			return nil, fmt.Errorf("line %d's %s: no parselet for token type %s", tok.Ln, tok.Lexeme, tok.Type)
+			return nil, fmt.Errorf("line %d's %s: no infix parselet for token type %s", tok.Ln, tok.Lexeme, tok.Type)
 		}
 
 		left, err = infix.parse(p, left, tok)
@@ -123,7 +143,6 @@ func (p *Parser) consume() token.Token {
 }
 
 func (p *Parser) consumeAndCheck(t token.Type, msg string) (token.Token, error) {
-	fmt.Println(p.peek().Type)
 	if p.check(t) {
 		return p.advance(), nil
 	}

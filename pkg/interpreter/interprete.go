@@ -5,14 +5,18 @@ import (
 
 	"github.com/taehioum/glox/pkg/ast/expressions"
 	"github.com/taehioum/glox/pkg/ast/statements"
+	"github.com/taehioum/glox/pkg/interpreter/environment"
 	"github.com/taehioum/glox/pkg/token"
 )
 
 type Interpreter struct {
+	env *environment.Environment
 }
 
 func Interprete(stmts ...statements.Stmt) error {
-	i := Interpreter{}
+	i := Interpreter{
+		env: environment.NewGlobalEnvironment(),
+	}
 	for _, stmt := range stmts {
 		err := stmt.Accept(i.Interprete)
 		if err != nil {
@@ -31,6 +35,30 @@ func (i *Interpreter) Interprete(s statements.Stmt) error {
 		}
 		fmt.Printf("%v\n", v)
 		return nil
+	case statements.Declaration:
+		if s.Intializer == nil {
+			i.env.Define(s.Name.Lexeme, nil)
+			return nil
+		}
+
+		v, err := i.evaluate(s.Intializer)
+		if err != nil {
+			return err
+		}
+		i.env.Define(s.Name.Lexeme, v)
+		return nil
+	case statements.Block:
+		prev := i.env
+		i.env = environment.NewEnclosedEnvironment(prev)
+		for _, stmt := range s.Stmts {
+			stmt.Accept(i.Interprete)
+		}
+		// restore env
+		i.env = prev
+		return nil
+	case statements.Expression:
+		_, err := i.evaluate(s.Expr)
+		return err
 	default:
 		return fmt.Errorf("interpreting: unknown statement %T", s)
 	}
@@ -40,8 +68,25 @@ func (i *Interpreter) evaluate(e expressions.Expr) (any, error) {
 	switch e := e.(type) {
 	case expressions.Literal:
 		return e.Value, nil
+	case expressions.Assignment:
+		val, err := i.eval(e.Value)
+		if err != nil {
+			return nil, err
+		}
+
+		if _, err := i.env.Get(e.Name.Lexeme); err != nil {
+			return nil, fmt.Errorf("assignment %w", err)
+		}
+		i.env.Assign(e.Name.Lexeme, val)
+		return val, nil
 	case expressions.Grouping:
 		return i.eval(e.Expr)
+	case expressions.Variable:
+		v, err := i.env.Get(e.Name.Lexeme)
+		if v == nil {
+			return nil, fmt.Errorf("uninitialized variable '%s'", e.Name.Lexeme)
+		}
+		return v, err
 	case expressions.Unary:
 		right, err := i.eval(e.Right)
 		if err != nil {
@@ -63,6 +108,9 @@ func (i *Interpreter) evaluate(e expressions.Expr) (any, error) {
 			}
 			// anything non-bool is truthy
 			return false, nil
+		case token.EQUAL:
+			// evaluate r-value
+			return right, nil
 		default:
 			return nil, fmt.Errorf("unknown expression %T", e)
 		}
@@ -113,10 +161,10 @@ func (i *Interpreter) evaluate(e expressions.Expr) (any, error) {
 		case token.EQUALEQUAL: // deep equality for numbers, bools, strings
 			return l == r, nil
 		default:
-			return nil, fmt.Errorf("unknown expression %T", e)
+			return nil, fmt.Errorf("unknown binary expression %T", e)
 		}
 	default:
-		return nil, fmt.Errorf("unknown expression %T", e)
+		return nil, fmt.Errorf("unknown expression %v", e)
 	}
 }
 

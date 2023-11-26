@@ -3,6 +3,7 @@ package interpreter
 import (
 	"bufio"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/taehioum/glox/pkg/parser"
@@ -50,13 +51,13 @@ func (i *Runner) run(source string) error {
 		return fmt.Errorf("running: %w", err)
 	}
 
-	fmt.Printf("%+v\n", tokens)
+	slog.Debug("tokens", slog.Attr{Key: "tokens", Value: slog.AnyValue(tokens)})
 	stmts, err := parser.Parse(tokens)
 	if err != nil {
 		return fmt.Errorf("running: %w", err)
 	}
 
-	fmt.Printf("stmts: %+v\n", stmts)
+	slog.Debug("stmts", slog.Attr{Key: "stmts", Value: slog.AnyValue(stmts)})
 	err = Interprete(stmts...)
 	if err != nil {
 		return err

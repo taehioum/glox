@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/taehioum/glox/pkg/interpreter"
@@ -14,6 +15,15 @@ func main() {
 		fmt.Println("Usage: glox [script]")
 		os.Exit(64)
 	}
+
+	slogLeveler := slog.LevelInfo
+	logLevel := os.Getenv("LOG")
+	if logLevel == "DEBUG" || logLevel == "debug" {
+		slogLeveler = slog.LevelDebug
+	}
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slogLeveler,
+	})))
 
 	i := interpreter.Runner{}
 
