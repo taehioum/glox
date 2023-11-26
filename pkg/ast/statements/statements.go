@@ -1,6 +1,9 @@
 package statements
 
-import "github.com/taehioum/glox/pkg/expressions"
+import (
+	"github.com/taehioum/glox/pkg/ast/expressions"
+	"github.com/taehioum/glox/pkg/token"
+)
 
 type Visitor func(Stmt) error
 
@@ -21,5 +24,14 @@ type Expression struct {
 }
 
 func (stmt Expression) Accept(v Visitor) error {
+	return v(stmt)
+}
+
+type Declaration struct {
+	Name       token.Token
+	Intializer expressions.Expr
+}
+
+func (stmt Declaration) Accept(v Visitor) error {
 	return v(stmt)
 }

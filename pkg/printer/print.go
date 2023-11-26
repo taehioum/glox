@@ -3,7 +3,7 @@ package pprint
 import (
 	"fmt"
 
-	"github.com/taehioum/glox/pkg/expressions"
+	"github.com/taehioum/glox/pkg/ast/expressions"
 )
 
 func Print(e expressions.Expr) string {

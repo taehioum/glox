@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"github.com/taehioum/glox/pkg/expressions"
+	"github.com/taehioum/glox/pkg/ast/expressions"
 	"github.com/taehioum/glox/pkg/token"
 )
 

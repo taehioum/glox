@@ -3,8 +3,8 @@ package parser
 import (
 	"fmt"
 
-	"github.com/taehioum/glox/pkg/expressions"
-	"github.com/taehioum/glox/pkg/statements"
+	"github.com/taehioum/glox/pkg/ast/expressions"
+	"github.com/taehioum/glox/pkg/ast/statements"
 	"github.com/taehioum/glox/pkg/token"
 )
 
@@ -23,14 +23,15 @@ type PrefixParselet interface {
 }
 
 var prefixPraseletsbyTokenType = map[token.Type]PrefixParselet{
-	token.PLUS:      UnaryOperatorParselet{},
-	token.MINUS:     UnaryOperatorParselet{},
-	token.BANG:      UnaryOperatorParselet{},
-	token.NUMBER:    LiteralParselet{},
-	token.STRING:    LiteralParselet{},
-	token.TRUE:      BoolParselet{},
-	token.FALSE:     BoolParselet{},
-	token.LEFTPAREN: GroupParselet{},
+	token.PLUS:       UnaryOperatorParselet{},
+	token.MINUS:      UnaryOperatorParselet{},
+	token.BANG:       UnaryOperatorParselet{},
+	token.NUMBER:     LiteralParselet{},
+	token.STRING:     LiteralParselet{},
+	token.IDENTIFIER: VariableParselet{},
+	token.TRUE:       BoolParselet{},
+	token.FALSE:      BoolParselet{},
+	token.LEFTPAREN:  GroupParselet{},
 }
 
 var infixPraseletsbyTokenType = map[token.Type]InfixParselet{
@@ -122,6 +123,7 @@ func (p *Parser) consume() token.Token {
 }
 
 func (p *Parser) consumeAndCheck(t token.Type, msg string) (token.Token, error) {
+	fmt.Println(p.peek().Type)
 	if p.check(t) {
 		return p.advance(), nil
 	}

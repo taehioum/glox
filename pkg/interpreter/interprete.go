@@ -3,8 +3,8 @@ package interpreter
 import (
 	"fmt"
 
-	"github.com/taehioum/glox/pkg/expressions"
-	"github.com/taehioum/glox/pkg/statements"
+	"github.com/taehioum/glox/pkg/ast/expressions"
+	"github.com/taehioum/glox/pkg/ast/statements"
 	"github.com/taehioum/glox/pkg/token"
 )
 
@@ -32,7 +32,7 @@ func (i *Interpreter) Interprete(s statements.Stmt) error {
 		fmt.Printf("%v\n", v)
 		return nil
 	default:
-		panic(fmt.Sprintf("unknown statement %T", s))
+		return fmt.Errorf("interpreting: unknown statement %T", s)
 	}
 }
 

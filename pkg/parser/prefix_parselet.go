@@ -3,7 +3,7 @@ package parser
 import (
 	"fmt"
 
-	"github.com/taehioum/glox/pkg/expressions"
+	"github.com/taehioum/glox/pkg/ast/expressions"
 	"github.com/taehioum/glox/pkg/token"
 )
 
@@ -56,5 +56,14 @@ func (p GroupParselet) parse(parser *Parser, tok token.Token) (expressions.Expr,
 
 	return expressions.Grouping{
 		Expr: expr,
+	}, nil
+}
+
+type VariableParselet struct {
+}
+
+func (p VariableParselet) parse(parser *Parser, token token.Token) (expressions.Expr, error) {
+	return expressions.Variable{
+		Name: token,
 	}, nil
 }

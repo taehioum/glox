@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/taehioum/glox/pkg/expressions"
+	"github.com/taehioum/glox/pkg/ast/expressions"
 	"github.com/taehioum/glox/pkg/token"
 )
 
