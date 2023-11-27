@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/taehioum/glox/pkg/ast/expressions"
@@ -8,6 +9,15 @@ import (
 	"github.com/taehioum/glox/pkg/interpreter/environment"
 	"github.com/taehioum/glox/pkg/token"
 )
+
+// ErrBreak is a sentinel error to break out of a loop.
+// looping constructs should catch this error and return nil.
+var ErrBreak = fmt.Errorf("break")
+
+// ErrContinue is a sentinel error to continue a loop.
+// looping constructs should catch this error, and keep running.
+// we get the continue behavior for free by not returning from the loop, without running any code after the continue statement.
+var ErrContinue = fmt.Errorf("continue")
 
 type Interpreter struct {
 	env *environment.Environment
@@ -51,7 +61,10 @@ func (i *Interpreter) Interprete(s statements.Stmt) error {
 		prev := i.env
 		i.env = environment.NewEnclosedEnvironment(prev)
 		for _, stmt := range s.Stmts {
-			stmt.Accept(i.Interprete)
+			err := stmt.Accept(i.Interprete)
+			if err != nil {
+				return err
+			}
 		}
 		// restore env
 		i.env = prev
@@ -79,15 +92,29 @@ func (i *Interpreter) Interprete(s statements.Stmt) error {
 				break
 			}
 			err = s.Body.Accept(i.Interprete)
+			if errors.Is(err, ErrBreak) {
+				return nil
+			}
+			// by continuing the for loop here, we get the continue behavior for free.
+			if errors.Is(err, ErrContinue) {
+				continue
+			}
 			if err != nil {
 				return err
 			}
 		}
 		return nil
+	// if we had go-to's, break and continue would be implemented as labels and go-to's during the parse pass.
+	// but we don't have go-to's, so we use sentinel errors.
+	case statements.Break:
+		return ErrBreak
+	case statements.Continue:
+		return ErrContinue
 	case statements.Expression:
 		_, err := i.evaluate(s.Expr)
 		return err
 	default:
+		fmt.Println("error!")
 		return fmt.Errorf("interpreting: unknown statement %T", s)
 	}
 }

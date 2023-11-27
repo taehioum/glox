@@ -50,6 +50,9 @@ var statementParselets = map[token.Type]StatementParselet{
 	token.VAR:       DeclarationStatementParselet{},
 	token.IF:        IfStatementParselet{},
 	token.WHILE:     WhileStatementParselet{},
+	token.FOR:       ForStatementParselet{},
+	token.BREAK:     BreakStatementParselet{},
+	token.CONTINUE:  ContinueStatementParslet{},
 }
 
 var prefixPraseletsbyTokenType = map[token.Type]PrefixParselet{

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/taehioum/glox/pkg/ast/expressions"
 	"github.com/taehioum/glox/pkg/ast/statements"
 	"github.com/taehioum/glox/pkg/token"
 )
@@ -130,9 +131,95 @@ func (p WhileStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 	}, nil
 }
 
+type ForStatementParselet struct{}
+
+func (p ForStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+	parser.consume() // consume FOR
+	_, err := parser.consumeAndCheck(token.LEFTPAREN, "expected '(' after 'for'")
+	if err != nil {
+		return nil, err
+	}
+
+	var init statements.Stmt
+	if parser.check(token.SEMICOLON) {
+		init = nil
+		parser.consume()
+	} else if parser.check(token.VAR) {
+		init, err = DeclarationStatementParselet{}.parse(parser)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		init, err = ExpressionStatementParselet{}.parse(parser)
+		if err != nil {
+			return nil, err
+		}
+	}
+	// _, err = parser.consumeAndCheck(token.SEMICOLON, "expected ';' after init condition")
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	var cond expressions.Expr
+	if !parser.check(token.SEMICOLON) {
+		cond, err = parser.parseExpr(0)
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err = parser.consumeAndCheck(token.SEMICOLON, "expected ';' after loop condition")
+	if err != nil {
+		return nil, err
+	}
+
+	var incr expressions.Expr
+	if !parser.check(token.RIGHTPAREN) {
+		incr, err = parser.parseExpr(0)
+		if err != nil {
+			return nil, err
+		}
+	}
+	_, err = parser.consumeAndCheck(token.RIGHTPAREN, "expected ')' after incr expression")
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := parser.parseSingleStatement()
+	if err != nil {
+		return nil, err
+	}
+
+	var res statements.Stmt
+	if incr != nil {
+		res = statements.Block{
+			Stmts: []statements.Stmt{
+				body,
+				statements.Expression{Expr: incr},
+			},
+		}
+	} else {
+		res = body
+	}
+
+	if cond == nil {
+		cond = expressions.Literal{Value: true}
+	}
+	res = statements.While{Cond: cond, Body: res}
+
+	if init != nil {
+		res = statements.Block{
+			Stmts: []statements.Stmt{
+				init,
+				res,
+			},
+		}
+	}
+
+	return res, nil
+}
+
 type ExpressionStatementParselet struct{}
 
-// TODO: split the switch statement into separate parselets
 func (p ExpressionStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 	slog.Debug("default parse stmt")
 	expr, err := parser.parseExpr(0)
@@ -145,4 +232,30 @@ func (p ExpressionStatementParselet) parse(parser *Parser) (statements.Stmt, err
 		return nil, err
 	}
 	return statements.Expression{Expr: expr}, nil
+}
+
+// TODO
+type BreakStatementParselet struct{}
+
+func (p BreakStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+	parser.consume() // consume BREAK
+	_, err := parser.consumeAndCheck(token.SEMICOLON, "expected ';' after break")
+	if err != nil {
+		return nil, err
+	}
+	// check that we are in a loop block
+	return statements.Break{}, nil
+}
+
+// TODO
+type ContinueStatementParslet struct{}
+
+func (p ContinueStatementParslet) parse(parser *Parser) (statements.Stmt, error) {
+	parser.consume() // consume CONTINUE
+	_, err := parser.consumeAndCheck(token.SEMICOLON, "expected ';' after continue")
+	if err != nil {
+		return nil, err
+	}
+	// check that we are in a loop block
+	return statements.Continue{}, nil
 }

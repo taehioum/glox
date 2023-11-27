@@ -76,3 +76,23 @@ type While struct {
 func (stmt While) Accept(v Visitor) error {
 	return v(stmt)
 }
+
+type Break struct{}
+
+func (stmt Break) Accept(v Visitor) error {
+	return v(stmt)
+}
+
+func (stmt Break) String() string {
+	return "Break{}"
+}
+
+type Continue struct{}
+
+func (stmt Continue) Accept(v Visitor) error {
+	return v(stmt)
+}
+
+func (stmt Continue) String() string {
+	return "Continue{}"
+}
