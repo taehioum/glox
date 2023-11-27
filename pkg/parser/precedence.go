@@ -10,6 +10,8 @@ type Precedence int
  */
 const (
 	PrecedenceAssignment Precedence = iota + 1 // =
+	PrecedenceOr                               // or
+	PrecedenceAnd                              // and
 	PrecedenceEquality                         // == !=
 	PrecedenceComparison                       // > >= < <=
 	PrecedenceTerm                             // - +

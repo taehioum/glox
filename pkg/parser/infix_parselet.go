@@ -87,3 +87,33 @@ func (p AssignmentParselet) parse(parser *Parser, left expressions.Expr, token t
 func (p AssignmentParselet) precedence() Precedence {
 	return PrecedenceAssignment
 }
+
+type OrParselet struct{}
+
+func (p OrParselet) parse(parser *Parser, left expressions.Expr, token token.Token) (expressions.Expr, error) {
+	expr, err := parser.parseExpr(PrecedenceOr)
+	return expressions.Logical{
+		Left:     left,
+		Operator: token,
+		Right:    expr,
+	}, err
+}
+
+func (p OrParselet) precedence() Precedence {
+	return PrecedenceOr
+}
+
+type AndParselet struct{}
+
+func (p AndParselet) parse(parser *Parser, left expressions.Expr, token token.Token) (expressions.Expr, error) {
+	expr, err := parser.parseExpr(PrecedenceAnd)
+	return expressions.Logical{
+		Left:     left,
+		Operator: token,
+		Right:    expr,
+	}, err
+}
+
+func (p AndParselet) precedence() Precedence {
+	return PrecedenceAnd
+}

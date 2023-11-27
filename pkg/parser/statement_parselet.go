@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/taehioum/glox/pkg/ast/statements"
@@ -69,6 +70,64 @@ func (p BlockStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 		return statements.Block{Stmts: stmts}, err
 	}
 	return statements.Block{Stmts: stmts}, nil
+}
+
+type IfStatementParselet struct{}
+
+func (p IfStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+	parser.consume() // consume IF
+	parser.consumeAndCheck(token.LEFTPAREN, "expected '(' after if")
+	cond, err := parser.parseExpr(0)
+	if err != nil {
+		return statements.If{}, fmt.Errorf("if condition: %w", err)
+	}
+	parser.consumeAndCheck(token.RIGHTPAREN, "Expect ')' after if condition.")
+	then, err := parser.parseSingleStatement()
+	if err != nil {
+		return statements.If{}, fmt.Errorf("if then: %w", err)
+	}
+
+	var elseBranch statements.Stmt
+	if parser.check(token.ELSE) {
+		parser.consume() // consume ELSE
+		elseBranch, err = parser.parseSingleStatement()
+		if err != nil {
+			return statements.If{}, fmt.Errorf("if else: %w", err)
+		}
+	}
+
+	return statements.If{
+		Cond: cond,
+		Then: then,
+		Else: elseBranch,
+	}, nil
+}
+
+type WhileStatementParselet struct{}
+
+func (p WhileStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+	parser.consume() // consume WHILE
+	_, err := parser.consumeAndCheck(token.LEFTPAREN, "expected '(' after while's condition expression")
+	if err != nil {
+		return nil, err
+	}
+	cond, err := parser.parseExpr(0)
+	if err != nil {
+		return statements.If{}, fmt.Errorf("if condition: %w", err)
+	}
+	_, err = parser.consumeAndCheck(token.RIGHTPAREN, "Expect ')' after while's condition expression")
+	if err != nil {
+		return nil, err
+	}
+	body, err := parser.parseSingleStatement()
+	if err != nil {
+		return statements.While{}, fmt.Errorf("while body: %w", err)
+	}
+
+	return statements.While{
+		Cond: cond,
+		Body: body,
+	}, nil
 }
 
 type ExpressionStatementParselet struct{}

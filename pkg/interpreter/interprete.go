@@ -56,6 +56,34 @@ func (i *Interpreter) Interprete(s statements.Stmt) error {
 		// restore env
 		i.env = prev
 		return nil
+	case statements.If:
+		v, err := i.evaluate(s.Cond)
+		if err != nil {
+			return err
+		}
+		if truthy(v) {
+			return s.Then.Accept(i.Interprete)
+		}
+		if s.Else != nil {
+			return s.Else.Accept(i.Interprete)
+		} else {
+			return nil
+		}
+	case statements.While:
+		for {
+			v, err := i.evaluate(s.Cond)
+			if err != nil {
+				return err
+			}
+			if !truthy(v) {
+				break
+			}
+			err = s.Body.Accept(i.Interprete)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
 	case statements.Expression:
 		_, err := i.evaluate(s.Expr)
 		return err
@@ -163,6 +191,21 @@ func (i *Interpreter) evaluate(e expressions.Expr) (any, error) {
 		default:
 			return nil, fmt.Errorf("unknown binary expression %T", e)
 		}
+	case expressions.Logical:
+		lv, err := i.eval(e.Left)
+		if err != nil {
+			return nil, err
+		}
+		if e.Operator.Type == token.OR {
+			if truthy(lv) {
+				return lv, nil
+			}
+		} else {
+			if !truthy(lv) {
+				return lv, nil
+			}
+		}
+		return i.eval(e.Right)
 	default:
 		return nil, fmt.Errorf("unknown expression %v", e)
 	}
@@ -189,4 +232,14 @@ func checkStringOperands(l, r any) bool {
 	}
 	_, ok = r.(string)
 	return ok
+}
+
+func truthy(v any) bool {
+	if v == nil {
+		return false
+	}
+	if b, ok := v.(bool); ok {
+		return b
+	}
+	return true
 }

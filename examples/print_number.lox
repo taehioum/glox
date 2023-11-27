@@ -1,6 +1,5 @@
-var a = 1;
-{
-  var a = a + 2;
-  print a;
+var x = 0;
+while (x < 10) {
+  print x;
+  x = x+1;
 }
-print a;

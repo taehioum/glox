@@ -48,6 +48,8 @@ var statementParselets = map[token.Type]StatementParselet{
 	token.LEFTBRACE: BlockStatementParselet{},
 	token.PRINT:     PrintStatmentParselet{},
 	token.VAR:       DeclarationStatementParselet{},
+	token.IF:        IfStatementParselet{},
+	token.WHILE:     WhileStatementParselet{},
 }
 
 var prefixPraseletsbyTokenType = map[token.Type]PrefixParselet{
@@ -56,6 +58,7 @@ var prefixPraseletsbyTokenType = map[token.Type]PrefixParselet{
 	token.BANG:       UnaryOperatorParselet{},
 	token.NUMBER:     LiteralParselet{},
 	token.STRING:     LiteralParselet{},
+	token.NIL:        LiteralParselet{},
 	token.IDENTIFIER: VariableParselet{},
 	token.TRUE:       BoolParselet{},
 	token.FALSE:      BoolParselet{},
@@ -68,6 +71,8 @@ var infixPraseletsbyTokenType = map[token.Type]InfixParselet{
 	token.MINUS:        TermParselet{},
 	token.STAR:         FactorParselet{},
 	token.SLASH:        FactorParselet{},
+	token.OR:           OrParselet{},
+	token.AND:          AndParselet{},
 	token.EQUALEQUAL:   EqualityParselet{},
 	token.BANGEQUAL:    EqualityParselet{},
 	token.LESS:         ComparsionParselet{},

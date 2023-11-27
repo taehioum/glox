@@ -57,3 +57,22 @@ func (stmt Block) Accept(v Visitor) error {
 func (stmt Block) String() string {
 	return fmt.Sprintf("Block{Stmts: %+v}", stmt.Stmts)
 }
+
+type If struct {
+	Cond expressions.Expr
+	Then Stmt
+	Else Stmt
+}
+
+func (stmt If) Accept(v Visitor) error {
+	return v(stmt)
+}
+
+type While struct {
+	Cond expressions.Expr
+	Body Stmt
+}
+
+func (stmt While) Accept(v Visitor) error {
+	return v(stmt)
+}
