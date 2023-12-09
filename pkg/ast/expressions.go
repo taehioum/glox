@@ -112,6 +112,7 @@ func (e Call) Accept(v ExpressionVisitor) (any, error) {
 
 // anonymous function
 type Lambda struct {
+	Name   token.Token
 	Params []token.Token
 	Body   []Stmt
 }

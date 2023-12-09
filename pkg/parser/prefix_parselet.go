@@ -117,6 +117,7 @@ func (p LambdaParselet) parse(parser *Parser, tok token.Token) (expressions.Expr
 	}
 
 	return expressions.Lambda{
+		Name:   tok,
 		Params: params,
 		Body:   body.Stmts,
 	}, nil

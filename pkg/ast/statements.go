@@ -14,7 +14,6 @@ type StatementVistior interface {
 	VisitWhile(While) error
 	VisitBreak(Break) error
 	VisitContinue(Continue) error
-	VisitFunctionDeclaration(Function) error
 	VisitReturn(Return) error
 	VisitExpression(Expression) error
 }
@@ -107,16 +106,6 @@ func (stmt Continue) Accept(v StatementVistior) error {
 
 func (stmt Continue) String() string {
 	return "Continue{}"
-}
-
-// Named Lambdas
-type Function struct {
-	Name token.Token
-	Func Lambda
-}
-
-func (stmt Function) Accept(v StatementVistior) error {
-	return v.VisitFunctionDeclaration(stmt)
 }
 
 type Return struct {

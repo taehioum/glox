@@ -27,7 +27,7 @@ func (i *Interpreter) VisitGrouping(e expressions.Grouping) (any, error) {
 func (i *Interpreter) VisitVariable(e expressions.Variable) (any, error) {
 	v, err := i.env.Get(e.Name.Lexeme)
 	if v == nil {
-		return nil, fmt.Errorf("uninitialized variable '%s'", e.Name.Lexeme)
+		return nil, fmt.Errorf("line %d: uninitialized variable '%s'", e.Name.Ln, e.Name.Lexeme)
 	}
 	return v, err
 }
@@ -172,12 +172,16 @@ func (i *Interpreter) VisitCall(e expressions.Call) (any, error) {
 		if fn.Arity() != -1 && len(args) != fn.Arity() {
 			return nil, fmt.Errorf("expected %d arguments, got %d", fn.Arity(), len(args))
 		}
-		return fn.Call(i, args)
+		v, err := fn.Call(i, args)
+		if err != nil {
+			return nil, fmt.Errorf("line %d: %w", e.Paren.Ln, err)
+		}
+		return v, nil
 	} else {
 		return nil, fmt.Errorf("can only call functions and classes")
 	}
 }
 
 func (i *Interpreter) VisitLambda(e expressions.Lambda) (any, error) {
-	return Function{def: expressions.Function{Func: e}}, nil
+	return Function{def: e, closure: i.env}, nil
 }

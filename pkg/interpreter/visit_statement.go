@@ -2,7 +2,6 @@ package interpreter
 
 import (
 	"errors"
-	"fmt"
 
 	statements "github.com/taehioum/glox/pkg/ast"
 	"github.com/taehioum/glox/pkg/interpreter/environment"
@@ -20,42 +19,6 @@ func (i *Interpreter) VisitDeclaration(stmt statements.Declaration) error {
 	}
 	i.env.Define(stmt.Name.Lexeme, v)
 	return nil
-}
-
-func (i *Interpreter) VisitFunctionDeclaration(fn statements.Function) error {
-	f := Function{def: fn}
-	i.env.Define(fn.Name.Lexeme, f)
-	return nil
-}
-
-type Function struct {
-	def statements.Function
-}
-
-func (f Function) Arity() int {
-	return len(f.def.Func.Params)
-}
-
-func (f Function) Call(i *Interpreter, args []any) (any, error) {
-	prev := i.env
-	defer func() {
-		// restore env
-		i.env = prev
-	}()
-	i.env = environment.NewEnclosedEnvironment(i.env)
-	for idx, param := range f.def.Func.Params {
-		i.env.Define(param.Lexeme, args[idx])
-	}
-
-	err := i.Interprete(f.def.Func.Body...)
-	var res ErrReturn
-	if errors.As(err, &res) {
-		return res.Value, nil
-	} else if err != nil {
-		return nil, fmt.Errorf("error in function %s: %w", f.def.Name.Lexeme, err)
-	}
-
-	return nil, nil
 }
 
 func (i *Interpreter) VisitBlock(stmt statements.Block) error {
