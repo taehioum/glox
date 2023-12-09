@@ -6,8 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/taehioum/glox/pkg/ast/expressions"
-	"github.com/taehioum/glox/pkg/ast/statements"
+	"github.com/taehioum/glox/pkg/ast"
 	"github.com/taehioum/glox/pkg/interpreter/environment"
 )
 
@@ -53,7 +52,7 @@ func NewInterpreter(writer io.Writer) *Interpreter {
 	return i
 }
 
-func (i *Interpreter) Interprete(stmts ...statements.Stmt) error {
+func (i *Interpreter) Interprete(stmts ...ast.Stmt) error {
 	for _, stmt := range stmts {
 		err := stmt.Accept(i)
 		if err != nil {
@@ -63,6 +62,39 @@ func (i *Interpreter) Interprete(stmts ...statements.Stmt) error {
 	return nil
 }
 
-func (i *Interpreter) Eval(e expressions.Expr) (any, error) {
+func (i *Interpreter) Eval(e ast.Expr) (any, error) {
 	return e.Accept(i)
+}
+
+type Callable interface {
+	Call(i *Interpreter, args []any) (any, error)
+	Arity() int
+}
+
+// TODO: we might return type checked value, so we don't have to type check twice.
+func checkNumberOperands(l, r any) bool {
+	_, ok := l.(float64)
+	if !ok {
+		return false
+	}
+	_, ok = r.(float64)
+	return ok
+}
+func checkStringOperands(l, r any) bool {
+	_, ok := l.(string)
+	if !ok {
+		return false
+	}
+	_, ok = r.(string)
+	return ok
+}
+
+func truthy(v any) bool {
+	if v == nil {
+		return false
+	}
+	if b, ok := v.(bool); ok {
+		return b
+	}
+	return true
 }

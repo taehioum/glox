@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/taehioum/glox/pkg/ast/expressions"
+	expressions "github.com/taehioum/glox/pkg/ast"
 	"github.com/taehioum/glox/pkg/token"
 )
 

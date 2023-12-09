@@ -3,9 +3,8 @@ package interpreter
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 
-	"github.com/taehioum/glox/pkg/ast/statements"
+	statements "github.com/taehioum/glox/pkg/ast"
 	"github.com/taehioum/glox/pkg/interpreter/environment"
 )
 
@@ -23,7 +22,7 @@ func (i *Interpreter) VisitDeclaration(stmt statements.Declaration) error {
 	return nil
 }
 
-func (i *Interpreter) VisitFunction(fn statements.Function) error {
+func (i *Interpreter) VisitFunctionDeclaration(fn statements.Function) error {
 	f := Function{def: fn}
 	i.env.Define(fn.Name.Lexeme, f)
 	return nil
@@ -34,7 +33,7 @@ type Function struct {
 }
 
 func (f Function) Arity() int {
-	return len(f.def.Params)
+	return len(f.def.Func.Params)
 }
 
 func (f Function) Call(i *Interpreter, args []any) (any, error) {
@@ -44,12 +43,11 @@ func (f Function) Call(i *Interpreter, args []any) (any, error) {
 		i.env = prev
 	}()
 	i.env = environment.NewEnclosedEnvironment(i.env)
-	for idx, param := range f.def.Params {
-		slog.Debug("defining %s as %v", param.Lexeme, args[idx])
+	for idx, param := range f.def.Func.Params {
 		i.env.Define(param.Lexeme, args[idx])
 	}
 
-	err := i.Interprete(f.def.Body...)
+	err := i.Interprete(f.def.Func.Body...)
 	var res ErrReturn
 	if errors.As(err, &res) {
 		return res.Value, nil

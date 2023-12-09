@@ -3,7 +3,7 @@ package interpreter
 import (
 	"fmt"
 
-	"github.com/taehioum/glox/pkg/ast/expressions"
+	expressions "github.com/taehioum/glox/pkg/ast"
 	"github.com/taehioum/glox/pkg/token"
 )
 
@@ -178,36 +178,6 @@ func (i *Interpreter) VisitCall(e expressions.Call) (any, error) {
 	}
 }
 
-type Callable interface {
-	Call(i *Interpreter, args []any) (any, error)
-	Arity() int
-}
-
-// TODO: we might return type checked value, so we don't have to type check twice.
-func checkNumberOperands(l, r any) bool {
-	_, ok := l.(float64)
-	if !ok {
-		return false
-	}
-	_, ok = r.(float64)
-	return ok
-}
-
-func checkStringOperands(l, r any) bool {
-	_, ok := l.(string)
-	if !ok {
-		return false
-	}
-	_, ok = r.(string)
-	return ok
-}
-
-func truthy(v any) bool {
-	if v == nil {
-		return false
-	}
-	if b, ok := v.(bool); ok {
-		return b
-	}
-	return true
+func (i *Interpreter) VisitLambda(e expressions.Lambda) (any, error) {
+	return Function{def: expressions.Function{Func: e}}, nil
 }

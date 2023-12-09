@@ -1,18 +1,16 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 
-	"github.com/taehioum/glox/pkg/ast/expressions"
-	"github.com/taehioum/glox/pkg/ast/statements"
+	"github.com/taehioum/glox/pkg/ast"
 	"github.com/taehioum/glox/pkg/token"
 )
 
 type PrintStatmentParselet struct{}
 
-func (p PrintStatmentParselet) parse(parser *Parser) (statements.Stmt, error) {
+func (p PrintStatmentParselet) parse(parser *Parser) (ast.Stmt, error) {
 	parser.consume() // consume PRINT
 	expr, err := parser.parseExpr(0)
 	if err != nil {
@@ -23,18 +21,18 @@ func (p PrintStatmentParselet) parse(parser *Parser) (statements.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return statements.Print{Expr: expr}, nil
+	return ast.Print{Expr: expr}, nil
 }
 
 type DeclarationStatementParselet struct{}
 
-func (p DeclarationStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+func (p DeclarationStatementParselet) parse(parser *Parser) (ast.Stmt, error) {
 	parser.consume() // consume VAR
 	name, err := parser.consumeAndCheck(token.IDENTIFIER, "Expect variable name.")
 	if err != nil {
 		return nil, err
 	}
-	stmt := statements.Declaration{
+	stmt := ast.Declaration{
 		Name: name,
 	}
 
@@ -57,48 +55,48 @@ func (p DeclarationStatementParselet) parse(parser *Parser) (statements.Stmt, er
 
 type BlockStatementParselet struct{}
 
-func (p BlockStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+func (p BlockStatementParselet) parse(parser *Parser) (ast.Stmt, error) {
 	parser.consume() // consume LEFTBRACE
-	var stmts []statements.Stmt
+	var stmts []ast.Stmt
 	for !parser.isAtEnd() && !parser.check(token.RIGHTBRACE) {
 		stmt, err := parser.parseSingleStatement()
 		if err != nil {
-			return statements.Block{Stmts: stmts}, err
+			return ast.Block{Stmts: stmts}, err
 		}
 		stmts = append(stmts, stmt)
 	}
 	_, err := parser.consumeAndCheck(token.RIGHTBRACE, "expected ';' after value")
 	if err != nil {
-		return statements.Block{Stmts: stmts}, err
+		return ast.Block{Stmts: stmts}, err
 	}
-	return statements.Block{Stmts: stmts}, nil
+	return ast.Block{Stmts: stmts}, nil
 }
 
 type IfStatementParselet struct{}
 
-func (p IfStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+func (p IfStatementParselet) parse(parser *Parser) (ast.Stmt, error) {
 	parser.consume() // consume IF
 	parser.consumeAndCheck(token.LEFTPAREN, "expected '(' after if")
 	cond, err := parser.parseExpr(0)
 	if err != nil {
-		return statements.If{}, fmt.Errorf("if condition: %w", err)
+		return ast.If{}, fmt.Errorf("if condition: %w", err)
 	}
 	parser.consumeAndCheck(token.RIGHTPAREN, "Expect ')' after if condition.")
 	then, err := parser.parseSingleStatement()
 	if err != nil {
-		return statements.If{}, fmt.Errorf("if then: %w", err)
+		return ast.If{}, fmt.Errorf("if then: %w", err)
 	}
 
-	var elseBranch statements.Stmt
+	var elseBranch ast.Stmt
 	if parser.check(token.ELSE) {
 		parser.consume() // consume ELSE
 		elseBranch, err = parser.parseSingleStatement()
 		if err != nil {
-			return statements.If{}, fmt.Errorf("if else: %w", err)
+			return ast.If{}, fmt.Errorf("if else: %w", err)
 		}
 	}
 
-	return statements.If{
+	return ast.If{
 		Cond: cond,
 		Then: then,
 		Else: elseBranch,
@@ -107,7 +105,7 @@ func (p IfStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 
 type WhileStatementParselet struct{}
 
-func (p WhileStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+func (p WhileStatementParselet) parse(parser *Parser) (ast.Stmt, error) {
 	parser.consume() // consume WHILE
 	_, err := parser.consumeAndCheck(token.LEFTPAREN, "expected '(' after while's condition expression")
 	if err != nil {
@@ -115,7 +113,7 @@ func (p WhileStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 	}
 	cond, err := parser.parseExpr(0)
 	if err != nil {
-		return statements.If{}, fmt.Errorf("if condition: %w", err)
+		return ast.If{}, fmt.Errorf("if condition: %w", err)
 	}
 	_, err = parser.consumeAndCheck(token.RIGHTPAREN, "Expect ')' after while's condition expression")
 	if err != nil {
@@ -123,10 +121,10 @@ func (p WhileStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 	}
 	body, err := parser.parseSingleStatement()
 	if err != nil {
-		return statements.While{}, fmt.Errorf("while body: %w", err)
+		return ast.While{}, fmt.Errorf("while body: %w", err)
 	}
 
-	return statements.While{
+	return ast.While{
 		Cond: cond,
 		Body: body,
 	}, nil
@@ -134,14 +132,14 @@ func (p WhileStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 
 type ForStatementParselet struct{}
 
-func (p ForStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+func (p ForStatementParselet) parse(parser *Parser) (ast.Stmt, error) {
 	parser.consume() // consume FOR
 	_, err := parser.consumeAndCheck(token.LEFTPAREN, "expected '(' after 'for'")
 	if err != nil {
 		return nil, err
 	}
 
-	var init statements.Stmt
+	var init ast.Stmt
 	if parser.check(token.SEMICOLON) {
 		init = nil
 		parser.consume()
@@ -161,7 +159,7 @@ func (p ForStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 	// 	return nil, err
 	// }
 
-	var cond expressions.Expr
+	var cond ast.Expr
 	if !parser.check(token.SEMICOLON) {
 		cond, err = parser.parseExpr(0)
 		if err != nil {
@@ -173,7 +171,7 @@ func (p ForStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 		return nil, err
 	}
 
-	var incr expressions.Expr
+	var incr ast.Expr
 	if !parser.check(token.RIGHTPAREN) {
 		incr, err = parser.parseExpr(0)
 		if err != nil {
@@ -190,12 +188,12 @@ func (p ForStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 		return nil, err
 	}
 
-	var res statements.Stmt
+	var res ast.Stmt
 	if incr != nil {
-		res = statements.Block{
-			Stmts: []statements.Stmt{
+		res = ast.Block{
+			Stmts: []ast.Stmt{
 				body,
-				statements.Expression{Expr: incr},
+				ast.Expression{Expr: incr},
 			},
 		}
 	} else {
@@ -203,13 +201,13 @@ func (p ForStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 	}
 
 	if cond == nil {
-		cond = expressions.Literal{Value: true}
+		cond = ast.Literal{Value: true}
 	}
-	res = statements.While{Cond: cond, Body: res}
+	res = ast.While{Cond: cond, Body: res}
 
 	if init != nil {
-		res = statements.Block{
-			Stmts: []statements.Stmt{
+		res = ast.Block{
+			Stmts: []ast.Stmt{
 				init,
 				res,
 			},
@@ -221,7 +219,7 @@ func (p ForStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
 
 type ExpressionStatementParselet struct{}
 
-func (p ExpressionStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+func (p ExpressionStatementParselet) parse(parser *Parser) (ast.Stmt, error) {
 	slog.Debug("default parse stmt")
 	expr, err := parser.parseExpr(0)
 	if err != nil {
@@ -232,100 +230,60 @@ func (p ExpressionStatementParselet) parse(parser *Parser) (statements.Stmt, err
 	if err != nil {
 		return nil, err
 	}
-	return statements.Expression{Expr: expr}, nil
+	return ast.Expression{Expr: expr}, nil
 }
 
 // TODO
 type BreakStatementParselet struct{}
 
-func (p BreakStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+func (p BreakStatementParselet) parse(parser *Parser) (ast.Stmt, error) {
 	parser.consume() // consume BREAK
 	_, err := parser.consumeAndCheck(token.SEMICOLON, "expected ';' after break")
 	if err != nil {
 		return nil, err
 	}
 	// check that we are in a loop block
-	return statements.Break{}, nil
+	return ast.Break{}, nil
 }
 
 // TODO
 type ContinueStatementParslet struct{}
 
-func (p ContinueStatementParslet) parse(parser *Parser) (statements.Stmt, error) {
+func (p ContinueStatementParslet) parse(parser *Parser) (ast.Stmt, error) {
 	parser.consume() // consume CONTINUE
 	_, err := parser.consumeAndCheck(token.SEMICOLON, "expected ';' after continue")
 	if err != nil {
 		return nil, err
 	}
 	// check that we are in a loop block
-	return statements.Continue{}, nil
+	return ast.Continue{}, nil
 }
 
-type FunctionStatementParselet struct{}
+type FunctionDeclarationStatementParselet struct{}
 
-func (p FunctionStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+func (p FunctionDeclarationStatementParselet) parse(parser *Parser) (ast.Stmt, error) {
 	parser.consume() // consume FUN
 	name, err := parser.consumeAndCheck(token.IDENTIFIER, "Expect function name.")
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = parser.consumeAndCheck(token.LEFTPAREN, "Expect '(' after function name.")
+	lambda, err := LambdaParselet{}.parse(parser, name)
 	if err != nil {
 		return nil, err
 	}
 
-	var params []token.Token
-	// parse the comma-seperated arguments until we hit a ')'
-	if !parser.check(token.RIGHTPAREN) {
-		ok := true
-		for ok {
-			id, err := parser.consumeAndCheck(token.IDENTIFIER, "expected identifier")
-			if err != nil {
-				return nil, err
-			}
-			if len(params) >= 255 {
-				return nil, errors.New("can't have more than 255 parameters")
-			}
-			params = append(params, id)
-
-			_, err = parser.consumeAndCheck(token.COMMA, "expected ',' after argument")
-			ok = err == nil
-		}
-	}
-
-	_, err = parser.consumeAndCheck(token.RIGHTPAREN, "expected ')' after arguments")
-	if err != nil {
-		return nil, err
-	}
-
-	ok := parser.check(token.LEFTBRACE)
-	if !ok {
-		return nil, errors.New("expected '{' after function declaration")
-	}
-
-	b, err := BlockStatementParselet{}.parse(parser)
-	if err != nil {
-		return nil, err
-	}
-
-	body, ok := b.(statements.Block)
-	if !ok {
-		return nil, errors.New("expected block statement")
-	}
-
-	return statements.Function{
-		Name:   name,
-		Params: params,
-		Body:   body.Stmts,
+	return ast.Declaration{
+		Name:       name,
+		Intializer: lambda,
 	}, nil
 }
 
 type ReturnStatementParselet struct{}
 
-func (p ReturnStatementParselet) parse(parser *Parser) (statements.Stmt, error) {
+func (p ReturnStatementParselet) parse(parser *Parser) (ast.Stmt, error) {
 	t := parser.consume() // consume RETURN
-	var expr expressions.Expr
+	var expr ast.Expr
 	if !parser.check(token.SEMICOLON) {
 		var err error
 		expr, err = parser.parseExpr(0)
@@ -337,5 +295,5 @@ func (p ReturnStatementParselet) parse(parser *Parser) (statements.Stmt, error) 
 	if err != nil {
 		return nil, err
 	}
-	return statements.Return{Keyword: t, Value: expr}, nil
+	return ast.Return{Keyword: t, Value: expr}, nil
 }

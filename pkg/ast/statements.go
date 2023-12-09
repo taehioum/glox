@@ -1,13 +1,12 @@
-package statements
+package ast
 
 import (
 	"fmt"
 
-	"github.com/taehioum/glox/pkg/ast/expressions"
 	"github.com/taehioum/glox/pkg/token"
 )
 
-type Visitor interface {
+type StatementVistior interface {
 	// VisitPrint(Print) error
 	VisitDeclaration(Declaration) error
 	VisitBlock(Block) error
@@ -15,7 +14,7 @@ type Visitor interface {
 	VisitWhile(While) error
 	VisitBreak(Break) error
 	VisitContinue(Continue) error
-	VisitFunction(Function) error
+	VisitFunctionDeclaration(Function) error
 	VisitReturn(Return) error
 	VisitExpression(Expression) error
 }
@@ -23,14 +22,14 @@ type Visitor interface {
 // type Visitor func(Stmt) error
 
 type Stmt interface {
-	Accept(Visitor) error
+	Accept(StatementVistior) error
 }
 
 type Print struct {
-	Expr expressions.Expr
+	Expr Expr
 }
 
-func (stmt Print) Accept(v Visitor) error {
+func (stmt Print) Accept(v StatementVistior) error {
 	return nil
 }
 
@@ -39,19 +38,19 @@ func (stmt Print) String() string {
 }
 
 type Expression struct {
-	Expr expressions.Expr
+	Expr Expr
 }
 
-func (stmt Expression) Accept(v Visitor) error {
+func (stmt Expression) Accept(v StatementVistior) error {
 	return v.VisitExpression(stmt)
 }
 
 type Declaration struct {
 	Name       token.Token
-	Intializer expressions.Expr
+	Intializer Expr
 }
 
-func (stmt Declaration) Accept(v Visitor) error {
+func (stmt Declaration) Accept(v StatementVistior) error {
 	return v.VisitDeclaration(stmt)
 }
 
@@ -63,7 +62,7 @@ type Block struct {
 	Stmts []Stmt
 }
 
-func (stmt Block) Accept(v Visitor) error {
+func (stmt Block) Accept(v StatementVistior) error {
 	return v.VisitBlock(stmt)
 }
 
@@ -72,27 +71,27 @@ func (stmt Block) String() string {
 }
 
 type If struct {
-	Cond expressions.Expr
+	Cond Expr
 	Then Stmt
 	Else Stmt
 }
 
-func (stmt If) Accept(v Visitor) error {
+func (stmt If) Accept(v StatementVistior) error {
 	return v.VisitIf(stmt)
 }
 
 type While struct {
-	Cond expressions.Expr
+	Cond Expr
 	Body Stmt
 }
 
-func (stmt While) Accept(v Visitor) error {
+func (stmt While) Accept(v StatementVistior) error {
 	return v.VisitWhile(stmt)
 }
 
 type Break struct{}
 
-func (stmt Break) Accept(v Visitor) error {
+func (stmt Break) Accept(v StatementVistior) error {
 	return v.VisitBreak(stmt)
 }
 
@@ -102,7 +101,7 @@ func (stmt Break) String() string {
 
 type Continue struct{}
 
-func (stmt Continue) Accept(v Visitor) error {
+func (stmt Continue) Accept(v StatementVistior) error {
 	return v.VisitContinue(stmt)
 }
 
@@ -110,21 +109,21 @@ func (stmt Continue) String() string {
 	return "Continue{}"
 }
 
+// Named Lambdas
 type Function struct {
-	Name   token.Token
-	Params []token.Token
-	Body   []Stmt
+	Name token.Token
+	Func Lambda
 }
 
-func (stmt Function) Accept(v Visitor) error {
-	return v.VisitFunction(stmt)
+func (stmt Function) Accept(v StatementVistior) error {
+	return v.VisitFunctionDeclaration(stmt)
 }
 
 type Return struct {
 	Keyword token.Token
-	Value   expressions.Expr
+	Value   Expr
 }
 
-func (stmt Return) Accept(v Visitor) error {
+func (stmt Return) Accept(v StatementVistior) error {
 	return v.VisitReturn(stmt)
 }

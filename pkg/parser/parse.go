@@ -3,8 +3,7 @@ package parser
 import (
 	"fmt"
 
-	"github.com/taehioum/glox/pkg/ast/expressions"
-	"github.com/taehioum/glox/pkg/ast/statements"
+	"github.com/taehioum/glox/pkg/ast"
 	"github.com/taehioum/glox/pkg/token"
 )
 
@@ -18,11 +17,11 @@ type Parser struct {
  * InfixParselet is associated with a token that appears in the middle of the
  * expression it parses. Its parse() method will be called after the left-hand
  * side has been parsed, and it in turn is responsible for parsing everything
- * that comes after the token. This is also used for postfix expressions, in
+ * that comes after the token. This is also used for postfix ast. in
  * which case it simply doesn't consume any more tokens in its parse() call.
  */
 type InfixParselet interface {
-	parse(parser *Parser, left expressions.Expr, token token.Token) (expressions.Expr, error)
+	parse(parser *Parser, left ast.Expr, token token.Token) (ast.Expr, error)
 	precedence() Precedence
 }
 
@@ -31,23 +30,23 @@ type InfixParselet interface {
  * associated with a token that appears at the beginning of an expression. Its
  * parse() method will be called with the consumed leading token, and the
  * parselet is responsible for parsing anything that comes after that token.
- * This interface is also used for single-token expressions like variables, in
+ * This interface is also used for single-token ast.like variables, in
  * which case parse() simply doesn't consume any more tokens.
  * @author rnystrom
  *
  */
 type PrefixParselet interface {
-	parse(parser *Parser, token token.Token) (expressions.Expr, error)
+	parse(parser *Parser, token token.Token) (ast.Expr, error)
 }
 
 type StatementParselet interface {
-	parse(parser *Parser) (statements.Stmt, error)
+	parse(parser *Parser) (ast.Stmt, error)
 }
 
 var statementParselets = map[token.Type]StatementParselet{
 	token.LEFTBRACE: BlockStatementParselet{},
 	// token.PRINT:     PrintStatmentParselet{},
-	token.FUN:      FunctionStatementParselet{},
+	token.FUN:      FunctionDeclarationStatementParselet{},
 	token.VAR:      DeclarationStatementParselet{},
 	token.IF:       IfStatementParselet{},
 	token.WHILE:    WhileStatementParselet{},
@@ -68,6 +67,7 @@ var prefixPraseletsbyTokenType = map[token.Type]PrefixParselet{
 	token.TRUE:       BoolParselet{},
 	token.FALSE:      BoolParselet{},
 	token.LEFTPAREN:  GroupParselet{},
+	token.FUN:        LambdaParselet{},
 }
 
 var infixPraseletsbyTokenType = map[token.Type]InfixParselet{
@@ -89,7 +89,7 @@ var infixPraseletsbyTokenType = map[token.Type]InfixParselet{
 	token.LEFTPAREN:    CallParselet{},
 }
 
-func Parse(tokens []token.Token) ([]statements.Stmt, error) {
+func Parse(tokens []token.Token) ([]ast.Stmt, error) {
 	parser := Parser{
 		tokens: tokens,
 		curr:   0,
@@ -98,8 +98,8 @@ func Parse(tokens []token.Token) ([]statements.Stmt, error) {
 	return stmts, err
 }
 
-func (p *Parser) Parse() ([]statements.Stmt, error) {
-	var stmts []statements.Stmt
+func (p *Parser) Parse() ([]ast.Stmt, error) {
+	var stmts []ast.Stmt
 	for !p.isAtEnd() {
 		stmt, err := p.parseSingleStatement()
 		if err != nil {
@@ -111,7 +111,7 @@ func (p *Parser) Parse() ([]statements.Stmt, error) {
 	return stmts, nil
 }
 
-func (p *Parser) parseSingleStatement() (statements.Stmt, error) {
+func (p *Parser) parseSingleStatement() (ast.Stmt, error) {
 	tok := p.peek()
 	parselet, ok := statementParselets[tok.Type]
 	if !ok { // the default parselet for statments is expression statement
@@ -120,7 +120,7 @@ func (p *Parser) parseSingleStatement() (statements.Stmt, error) {
 	return parselet.parse(p)
 }
 
-func (p *Parser) parseExpr(precendence Precedence) (expressions.Expr, error) {
+func (p *Parser) parseExpr(precendence Precedence) (ast.Expr, error) {
 	tok := p.consume()
 	prefix, ok := prefixPraseletsbyTokenType[tok.Type]
 	if !ok {
