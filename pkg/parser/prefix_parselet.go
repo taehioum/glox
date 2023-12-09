@@ -66,3 +66,5 @@ func (p VariableParselet) parse(parser *Parser, tok token.Token) (expressions.Ex
 		Name: tok,
 	}, nil
 }
+
+type FunctionParselet struct{}

@@ -15,6 +15,8 @@ type Visitor interface {
 	VisitWhile(While) error
 	VisitBreak(Break) error
 	VisitContinue(Continue) error
+	VisitFunction(Function) error
+	VisitReturn(Return) error
 	VisitExpression(Expression) error
 }
 
@@ -106,4 +108,23 @@ func (stmt Continue) Accept(v Visitor) error {
 
 func (stmt Continue) String() string {
 	return "Continue{}"
+}
+
+type Function struct {
+	Name   token.Token
+	Params []token.Token
+	Body   []Stmt
+}
+
+func (stmt Function) Accept(v Visitor) error {
+	return v.VisitFunction(stmt)
+}
+
+type Return struct {
+	Keyword token.Token
+	Value   expressions.Expr
+}
+
+func (stmt Return) Accept(v Visitor) error {
+	return v.VisitReturn(stmt)
 }

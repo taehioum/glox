@@ -124,13 +124,11 @@ type CallParselet struct{}
 
 func (p CallParselet) parse(parser *Parser, left expressions.Expr, tok token.Token) (expressions.Expr, error) {
 	var args []expressions.Expr
-	var rightParen token.Token
-
 	// parse the comma-seperated arguments until we hit a ')'
 	if !parser.check(token.RIGHTPAREN) {
 		ok := true
 		for ok {
-			expr, err := parser.parseExpr(PrecedenceCall)
+			expr, err := parser.parseExpr(0)
 			if err != nil {
 				return nil, err
 			}
@@ -144,7 +142,7 @@ func (p CallParselet) parse(parser *Parser, left expressions.Expr, tok token.Tok
 		}
 	}
 
-	rightParen, err := parser.consumeAndCheck(token.RIGHTPAREN, "expected ')' after arguments")
+	rightParen, err := parser.consumeAndCheck(token.RIGHTPAREN, "parsing call: expected ')' after arguments")
 	if err != nil {
 		return nil, err
 	}

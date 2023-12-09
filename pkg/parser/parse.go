@@ -47,12 +47,14 @@ type StatementParselet interface {
 var statementParselets = map[token.Type]StatementParselet{
 	token.LEFTBRACE: BlockStatementParselet{},
 	// token.PRINT:     PrintStatmentParselet{},
+	token.FUN:      FunctionStatementParselet{},
 	token.VAR:      DeclarationStatementParselet{},
 	token.IF:       IfStatementParselet{},
 	token.WHILE:    WhileStatementParselet{},
 	token.FOR:      ForStatementParselet{},
 	token.BREAK:    BreakStatementParselet{},
 	token.CONTINUE: ContinueStatementParslet{},
+	token.RETURN:   ReturnStatementParselet{},
 }
 
 var prefixPraseletsbyTokenType = map[token.Type]PrefixParselet{

@@ -3,6 +3,7 @@ package interpreter
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 
@@ -20,7 +21,7 @@ func (i *Runner) Runfile(path string) error {
 		return fmt.Errorf("running file: %w", err)
 	}
 
-	return i.run(string(contents))
+	return i.Run(string(contents), os.Stdout)
 }
 
 func (i *Runner) RunPrompt() error {
@@ -31,7 +32,7 @@ func (i *Runner) RunPrompt() error {
 		if !b {
 			break
 		}
-		err := i.run(sc.Text())
+		err := i.Run(sc.Text(), os.Stdout)
 		if err != nil {
 			// return fmt.Errorf("running prompt: %w", err)
 			fmt.Printf("running prompt %s: %s\n", sc.Text(), err)
@@ -45,7 +46,7 @@ func (i *Runner) RunPrompt() error {
 }
 
 // the main logic
-func (i *Runner) run(source string) error {
+func (i *Runner) Run(source string, writer io.Writer) error {
 	tokens, err := scanner.ScanTokens(source)
 	if err != nil {
 		return fmt.Errorf("running: %w", err)
@@ -58,7 +59,7 @@ func (i *Runner) run(source string) error {
 	}
 
 	slog.Debug("stmts", slog.Attr{Key: "stmts", Value: slog.AnyValue(stmts)})
-	intpr := NewInterpreter(os.Stdout)
+	intpr := NewInterpreter(writer)
 	err = intpr.Interprete(stmts...)
 	if err != nil {
 		return err
