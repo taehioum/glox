@@ -126,6 +126,9 @@ func (i *Interpreter) VisitExpression(stmt statements.Expression) error {
 }
 
 func (i *Interpreter) VisitReturn(stmt statements.Return) error {
+	if stmt.Value == nil {
+		return ErrReturn{}
+	}
 	v, err := i.Eval(stmt.Value)
 	if err != nil {
 		return err
