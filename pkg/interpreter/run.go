@@ -58,7 +58,8 @@ func (i *Runner) run(source string) error {
 	}
 
 	slog.Debug("stmts", slog.Attr{Key: "stmts", Value: slog.AnyValue(stmts)})
-	err = Interprete(stmts...)
+	intpr := NewInterpreter(os.Stdout)
+	err = intpr.Interprete(stmts...)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -116,4 +117,45 @@ func (p AndParselet) parse(parser *Parser, left expressions.Expr, token token.To
 
 func (p AndParselet) precedence() Precedence {
 	return PrecedenceAnd
+}
+
+// CallParselet parses function calls like a(b, c, d)
+type CallParselet struct{}
+
+func (p CallParselet) parse(parser *Parser, left expressions.Expr, tok token.Token) (expressions.Expr, error) {
+	var args []expressions.Expr
+	var rightParen token.Token
+
+	// parse the comma-seperated arguments until we hit a ')'
+	if !parser.check(token.RIGHTPAREN) {
+		ok := true
+		for ok {
+			expr, err := parser.parseExpr(PrecedenceCall)
+			if err != nil {
+				return nil, err
+			}
+			if len(args) >= 255 {
+				return nil, errors.New("can't have more than 255 arguments")
+			}
+			args = append(args, expr)
+
+			_, err = parser.consumeAndCheck(token.COMMA, "expected ',' after argument")
+			ok = err == nil
+		}
+	}
+
+	rightParen, err := parser.consumeAndCheck(token.RIGHTPAREN, "expected ')' after arguments")
+	if err != nil {
+		return nil, err
+	}
+
+	return expressions.Call{
+		Callee: left,
+		Args:   args,
+		Paren:  rightParen,
+	}, nil
+}
+
+func (p CallParselet) precedence() Precedence {
+	return PrecedenceCall
 }

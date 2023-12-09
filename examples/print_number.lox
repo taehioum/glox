@@ -1,2 +1,4 @@
-var x = 0;
-break;
+var x = 3;
+var y = 4;
+print(3, 4, x, y);
+clock();

@@ -22,16 +22,27 @@ var ErrBreak = fmt.Errorf("break")
 var ErrContinue = fmt.Errorf("continue")
 
 type Interpreter struct {
-	env *environment.Environment
+	env    *environment.Environment
+	global *environment.Environment
 
 	writer io.Writer
 }
 
-func Interprete(stmts ...statements.Stmt) error {
+func NewInterpreter(writer io.Writer) *Interpreter {
+	global := environment.NewGlobalEnvironment()
 	i := &Interpreter{
-		env:    environment.NewGlobalEnvironment(),
+		env:    global,
+		global: global,
 		writer: os.Stdout,
 	}
+
+	i.env.Define("clock", Clock{})
+	i.env.Define("print", Print{})
+
+	return i
+}
+
+func (i *Interpreter) Interprete(stmts ...statements.Stmt) error {
 	for _, stmt := range stmts {
 		err := stmt.Accept(i)
 		if err != nil {
@@ -41,17 +52,8 @@ func Interprete(stmts ...statements.Stmt) error {
 	return nil
 }
 
-func (i *Interpreter) eval(e expressions.Expr) (any, error) {
+func (i *Interpreter) Eval(e expressions.Expr) (any, error) {
 	return e.Accept(i)
-}
-
-func (i *Interpreter) VisitPrint(stmt statements.Print) error {
-	v, err := i.eval(stmt.Expr)
-	if err != nil {
-		return err
-	}
-	i.writer.Write([]byte(fmt.Sprintf("%v\n", v)))
-	return nil
 }
 
 func (i *Interpreter) VisitDeclaration(stmt statements.Declaration) error {
@@ -60,7 +62,7 @@ func (i *Interpreter) VisitDeclaration(stmt statements.Declaration) error {
 		return nil
 	}
 
-	v, err := i.eval(stmt.Intializer)
+	v, err := i.Eval(stmt.Intializer)
 	if err != nil {
 		return err
 	}
@@ -83,7 +85,7 @@ func (i *Interpreter) VisitBlock(stmt statements.Block) error {
 }
 
 func (i *Interpreter) VisitIf(stmt statements.If) error {
-	v, err := i.eval(stmt.Cond)
+	v, err := i.Eval(stmt.Cond)
 	if err != nil {
 		return err
 	}
@@ -99,7 +101,7 @@ func (i *Interpreter) VisitIf(stmt statements.If) error {
 func (i *Interpreter) VisitWhile(stmt statements.While) error {
 
 	for {
-		v, err := i.eval(stmt.Cond)
+		v, err := i.Eval(stmt.Cond)
 		if err != nil {
 			return err
 		}
@@ -130,12 +132,12 @@ func (i *Interpreter) VisitContinue(stmt statements.Continue) error {
 }
 
 func (i *Interpreter) VisitExpression(stmt statements.Expression) error {
-	_, err := i.eval(stmt.Expr)
+	_, err := i.Eval(stmt.Expr)
 	return err
 }
 
 func (i *Interpreter) VisitAssignment(e expressions.Assignment) (any, error) {
-	v, err := i.eval(e.Value)
+	v, err := i.Eval(e.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +150,7 @@ func (i *Interpreter) VisitLiteral(e expressions.Literal) (any, error) {
 }
 
 func (i *Interpreter) VisitGrouping(e expressions.Grouping) (any, error) {
-	return i.eval(e.Expr)
+	return i.Eval(e.Expr)
 }
 
 func (i *Interpreter) VisitVariable(e expressions.Variable) (any, error) {
@@ -160,7 +162,7 @@ func (i *Interpreter) VisitVariable(e expressions.Variable) (any, error) {
 }
 
 func (i *Interpreter) VisitUnary(e expressions.Unary) (any, error) {
-	right, err := i.eval(e.Right)
+	right, err := i.Eval(e.Right)
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +191,7 @@ func (i *Interpreter) VisitUnary(e expressions.Unary) (any, error) {
 }
 
 func (i *Interpreter) VisitPostUnary(e expressions.PostUnary) (any, error) {
-	v, err := i.eval(e.Left)
+	v, err := i.Eval(e.Left)
 	if err != nil {
 		return nil, err
 	}
@@ -213,11 +215,11 @@ func (i *Interpreter) VisitPostUnary(e expressions.PostUnary) (any, error) {
 }
 
 func (i *Interpreter) VisitBinary(e expressions.Binary) (any, error) {
-	l, err := i.eval(e.Left)
+	l, err := i.Eval(e.Left)
 	if err != nil {
 		return nil, err
 	}
-	r, err := i.eval(e.Right)
+	r, err := i.Eval(e.Right)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +266,7 @@ func (i *Interpreter) VisitBinary(e expressions.Binary) (any, error) {
 }
 
 func (i *Interpreter) VisitLogical(e expressions.Logical) (any, error) {
-	lv, err := i.eval(e.Left)
+	lv, err := i.Eval(e.Left)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +279,37 @@ func (i *Interpreter) VisitLogical(e expressions.Logical) (any, error) {
 			return lv, nil
 		}
 	}
-	return i.eval(e.Right)
+	return i.Eval(e.Right)
+}
+
+func (i *Interpreter) VisitCall(e expressions.Call) (any, error) {
+	callee, err := i.Eval(e.Callee)
+	if err != nil {
+		return nil, err
+	}
+
+	args := make([]any, len(e.Args))
+	for idx, arg := range e.Args {
+		v, err := i.Eval(arg)
+		if err != nil {
+			return nil, err
+		}
+		args[idx] = v
+	}
+
+	if fn, ok := callee.(Callable); ok {
+		if fn.Arity() != -1 && len(args) != fn.Arity() {
+			return nil, fmt.Errorf("expected %d arguments, got %d", fn.Arity(), len(args))
+		}
+		return fn.Call(i, args)
+	} else {
+		return nil, fmt.Errorf("can only call functions and classes")
+	}
+}
+
+type Callable interface {
+	Call(i *Interpreter, args []any) (any, error)
+	Arity() int
 }
 
 // TODO: we might return type checked value, so we don't have to type check twice.

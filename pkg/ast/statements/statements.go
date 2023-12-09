@@ -8,7 +8,7 @@ import (
 )
 
 type Visitor interface {
-	VisitPrint(Print) error
+	// VisitPrint(Print) error
 	VisitDeclaration(Declaration) error
 	VisitBlock(Block) error
 	VisitIf(If) error
@@ -29,7 +29,7 @@ type Print struct {
 }
 
 func (stmt Print) Accept(v Visitor) error {
-	return v.VisitPrint(stmt)
+	return nil
 }
 
 func (stmt Print) String() string {

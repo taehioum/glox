@@ -18,4 +18,5 @@ const (
 	PrecedenceFactor                           // / *
 	PrecedenceUnary                            // ! -
 	PrecedencePostfix                          // ++ --
+	PrecedenceCall                             // . () []
 )

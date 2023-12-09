@@ -15,6 +15,7 @@ type Visitor interface {
 	VisitVariable(Variable) (any, error)
 	VisitLogical(Logical) (any, error)
 	VisitPostUnary(PostUnary) (any, error)
+	VisitCall(Call) (any, error)
 }
 
 type Expr interface {
@@ -94,4 +95,16 @@ type PostUnary struct {
 
 func (e PostUnary) Accept(v Visitor) (any, error) {
 	return v.VisitPostUnary(e)
+}
+
+type Call struct {
+	Callee Expr
+	Args   []Expr
+
+	// used to report error on the location of the closing paren
+	Paren token.Token
+}
+
+func (e Call) Accept(v Visitor) (any, error) {
+	return v.VisitCall(e)
 }
