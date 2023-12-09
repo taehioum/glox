@@ -82,6 +82,8 @@ var infixPraseletsbyTokenType = map[token.Type]InfixParselet{
 	token.LESSEQUAL:    ComparsionParselet{},
 	token.GREATER:      ComparsionParselet{},
 	token.GREATEREQUAL: ComparsionParselet{},
+	token.PLUSPLUS:     PostfixParselet{},
+	token.MINUSMINUS:   PostfixParselet{},
 }
 
 func Parse(tokens []token.Token) ([]statements.Stmt, error) {

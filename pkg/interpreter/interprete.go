@@ -3,6 +3,8 @@ package interpreter
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/taehioum/glox/pkg/ast/expressions"
 	"github.com/taehioum/glox/pkg/ast/statements"
@@ -21,11 +23,14 @@ var ErrContinue = fmt.Errorf("continue")
 
 type Interpreter struct {
 	env *environment.Environment
+
+	writer io.Writer
 }
 
 func Interprete(stmts ...statements.Stmt) error {
 	i := &Interpreter{
-		env: environment.NewGlobalEnvironment(),
+		env:    environment.NewGlobalEnvironment(),
+		writer: os.Stdout,
 	}
 	for _, stmt := range stmts {
 		err := stmt.Accept(i)
@@ -45,7 +50,7 @@ func (i *Interpreter) VisitPrint(stmt statements.Print) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%v\n", v)
+	i.writer.Write([]byte(fmt.Sprintf("%v\n", v)))
 	return nil
 }
 
@@ -178,6 +183,30 @@ func (i *Interpreter) VisitUnary(e expressions.Unary) (any, error) {
 	case token.EQUAL:
 		// evaluate r-value
 		return right, nil
+	default:
+		return nil, fmt.Errorf("unknown expression %T", e)
+	}
+}
+
+func (i *Interpreter) VisitPostUnary(e expressions.PostUnary) (any, error) {
+	v, err := i.eval(e.Left)
+	if err != nil {
+		return nil, err
+	}
+
+	switch e.Operator.Type {
+	case token.PLUSPLUS:
+		if n, ok := v.(float64); ok {
+			i.env.Assign(e.Left.(expressions.Variable).Name.Lexeme, n+1)
+			return n + 1, nil
+		}
+		return nil, fmt.Errorf("expected numbers, got %T", v)
+	case token.MINUSMINUS:
+		if n, ok := v.(float64); ok {
+			i.env.Assign(e.Left.(expressions.Variable).Name.Lexeme, n-1)
+			return n - 1, nil
+		}
+		return nil, fmt.Errorf("expected numbers, got %T", v)
 	default:
 		return nil, fmt.Errorf("unknown expression %T", e)
 	}

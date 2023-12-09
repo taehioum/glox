@@ -14,6 +14,7 @@ type Visitor interface {
 	VisitUnary(Unary) (any, error)
 	VisitVariable(Variable) (any, error)
 	VisitLogical(Logical) (any, error)
+	VisitPostUnary(PostUnary) (any, error)
 }
 
 type Expr interface {
@@ -84,4 +85,13 @@ type Logical struct {
 
 func (e Logical) Accept(v Visitor) (any, error) {
 	return v.VisitLogical(e)
+}
+
+type PostUnary struct {
+	Left     Expr
+	Operator token.Token
+}
+
+func (e PostUnary) Accept(v Visitor) (any, error) {
+	return v.VisitPostUnary(e)
 }

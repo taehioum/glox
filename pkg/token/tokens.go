@@ -23,6 +23,8 @@ const (
 	BANGEQUAL    Type = "BANGEQUAL"
 	EQUAL        Type = "EQUAL"
 	EQUALEQUAL   Type = "EQUALEQUAL"
+	PLUSPLUS     Type = "PLUSPLUS"
+	MINUSMINUS   Type = "MINUSMINUS"
 	GREATER      Type = "GREATER"
 	GREATEREQUAL Type = "GREATEREQUAL"
 	LESS         Type = "LESS"

@@ -64,9 +64,17 @@ func (sc *Scanner) Scan() token.Token {
 	case '.':
 		return token.Token{Type: token.DOT, Lexeme: sc.lexeme(), Ln: sc.line}
 	case '-':
-		return token.Token{Type: token.MINUS, Lexeme: sc.lexeme(), Ln: sc.line}
+		if sc.match('-') {
+			return token.Token{Type: token.MINUSMINUS, Lexeme: sc.lexeme(), Ln: sc.line}
+		} else {
+			return token.Token{Type: token.MINUS, Lexeme: sc.lexeme(), Ln: sc.line}
+		}
 	case '+':
-		return token.Token{Type: token.PLUS, Lexeme: sc.lexeme(), Ln: sc.line}
+		if sc.match('+') {
+			return token.Token{Type: token.PLUSPLUS, Lexeme: sc.lexeme(), Ln: sc.line}
+		} else {
+			return token.Token{Type: token.PLUS, Lexeme: sc.lexeme(), Ln: sc.line}
+		}
 	case '*':
 		return token.Token{Type: token.STAR, Lexeme: sc.lexeme(), Ln: sc.line}
 	case ';':

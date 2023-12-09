@@ -17,4 +17,5 @@ const (
 	PrecedenceTerm                             // - +
 	PrecedenceFactor                           // / *
 	PrecedenceUnary                            // ! -
+	PrecedencePostfix                          // ++ --
 )
