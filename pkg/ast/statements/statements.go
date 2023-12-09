@@ -7,7 +7,18 @@ import (
 	"github.com/taehioum/glox/pkg/token"
 )
 
-type Visitor func(Stmt) error
+type Visitor interface {
+	VisitPrint(Print) error
+	VisitDeclaration(Declaration) error
+	VisitBlock(Block) error
+	VisitIf(If) error
+	VisitWhile(While) error
+	VisitBreak(Break) error
+	VisitContinue(Continue) error
+	VisitExpression(Expression) error
+}
+
+// type Visitor func(Stmt) error
 
 type Stmt interface {
 	Accept(Visitor) error
@@ -18,7 +29,7 @@ type Print struct {
 }
 
 func (stmt Print) Accept(v Visitor) error {
-	return v(stmt)
+	return v.VisitPrint(stmt)
 }
 
 func (stmt Print) String() string {
@@ -30,7 +41,7 @@ type Expression struct {
 }
 
 func (stmt Expression) Accept(v Visitor) error {
-	return v(stmt)
+	return v.VisitExpression(stmt)
 }
 
 type Declaration struct {
@@ -39,7 +50,7 @@ type Declaration struct {
 }
 
 func (stmt Declaration) Accept(v Visitor) error {
-	return v(stmt)
+	return v.VisitDeclaration(stmt)
 }
 
 func (stmt Declaration) String() string {
@@ -51,7 +62,7 @@ type Block struct {
 }
 
 func (stmt Block) Accept(v Visitor) error {
-	return v(stmt)
+	return v.VisitBlock(stmt)
 }
 
 func (stmt Block) String() string {
@@ -65,7 +76,7 @@ type If struct {
 }
 
 func (stmt If) Accept(v Visitor) error {
-	return v(stmt)
+	return v.VisitIf(stmt)
 }
 
 type While struct {
@@ -74,13 +85,13 @@ type While struct {
 }
 
 func (stmt While) Accept(v Visitor) error {
-	return v(stmt)
+	return v.VisitWhile(stmt)
 }
 
 type Break struct{}
 
 func (stmt Break) Accept(v Visitor) error {
-	return v(stmt)
+	return v.VisitBreak(stmt)
 }
 
 func (stmt Break) String() string {
@@ -90,7 +101,7 @@ func (stmt Break) String() string {
 type Continue struct{}
 
 func (stmt Continue) Accept(v Visitor) error {
-	return v(stmt)
+	return v.VisitContinue(stmt)
 }
 
 func (stmt Continue) String() string {

@@ -6,7 +6,15 @@ import (
 	"github.com/taehioum/glox/pkg/token"
 )
 
-type Visitor func(Expr) (any, error)
+type Visitor interface {
+	VisitAssignment(Assignment) (any, error)
+	VisitBinary(Binary) (any, error)
+	VisitGrouping(Grouping) (any, error)
+	VisitLiteral(Literal) (any, error)
+	VisitUnary(Unary) (any, error)
+	VisitVariable(Variable) (any, error)
+	VisitLogical(Logical) (any, error)
+}
 
 type Expr interface {
 	Accept(Visitor) (any, error)
@@ -17,12 +25,12 @@ type Assignment struct {
 	Value Expr
 }
 
-func (expr Assignment) Accept(v Visitor) (any, error) {
-	return v(expr)
+func (e Assignment) Accept(v Visitor) (any, error) {
+	return v.VisitAssignment(e)
 }
 
-func (expr Assignment) String() string {
-	return fmt.Sprintf("Assignment{Name: %s, Value: %s}", expr.Name, expr.Value)
+func (e Assignment) String() string {
+	return fmt.Sprintf("Assignment{Name: %s, Value: %s}", e.Name, e.Value)
 }
 
 type Binary struct {
@@ -31,24 +39,24 @@ type Binary struct {
 	Right    Expr
 }
 
-func (expr Binary) Accept(v Visitor) (any, error) {
-	return v(expr)
+func (e Binary) Accept(v Visitor) (any, error) {
+	return v.VisitBinary(e)
 }
 
 type Grouping struct {
 	Expr Expr
 }
 
-func (expr Grouping) Accept(v Visitor) (any, error) {
-	return v(expr)
+func (e Grouping) Accept(v Visitor) (any, error) {
+	return v.VisitGrouping(e)
 }
 
 type Literal struct {
 	Value any
 }
 
-func (expr Literal) Accept(v Visitor) (any, error) {
-	return v(expr)
+func (e Literal) Accept(v Visitor) (any, error) {
+	return v.VisitLiteral(e)
 }
 
 type Unary struct {
@@ -56,16 +64,16 @@ type Unary struct {
 	Right    Expr
 }
 
-func (expr Unary) Accept(v Visitor) (any, error) {
-	return v(expr)
+func (e Unary) Accept(v Visitor) (any, error) {
+	return v.VisitUnary(e)
 }
 
 type Variable struct {
 	Name token.Token
 }
 
-func (expr Variable) Accept(v Visitor) (any, error) {
-	return v(expr)
+func (e Variable) Accept(v Visitor) (any, error) {
+	return v.VisitVariable(e)
 }
 
 type Logical struct {
@@ -74,6 +82,6 @@ type Logical struct {
 	Right    Expr
 }
 
-func (expr Logical) Accept(v Visitor) (any, error) {
-	return v(expr)
+func (e Logical) Accept(v Visitor) (any, error) {
+	return v.VisitLogical(e)
 }
