@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 
 	"github.com/taehioum/glox/pkg/ast"
+	expressions "github.com/taehioum/glox/pkg/ast"
 	"github.com/taehioum/glox/pkg/interpreter/environment"
 )
 
@@ -32,22 +34,25 @@ type Interpreter struct {
 	env    *environment.Environment
 	global *environment.Environment
 
+	Locals map[any]int
+
 	writer io.Writer
 	reader bufio.Reader
 }
 
-func NewInterpreter(writer io.Writer) *Interpreter {
+func New(writer io.Writer) *Interpreter {
 	global := environment.NewGlobalEnvironment()
 	i := &Interpreter{
 		env:    global,
 		global: global,
 		writer: writer,
 		reader: *bufio.NewReader(os.Stdin),
+		Locals: make(map[any]int),
 	}
 
-	i.env.Define("clock", Clock{})
-	i.env.Define("print", Print{})
-	i.env.Define("input", Input{})
+	i.global.Define("clock", Clock{})
+	i.global.Define("print", Print{})
+	i.global.Define("input", Input{})
 
 	return i
 }
@@ -64,6 +69,18 @@ func (i *Interpreter) Interprete(stmts ...ast.Stmt) error {
 
 func (i *Interpreter) Eval(e ast.Expr) (any, error) {
 	return e.Accept(i)
+}
+
+func (i *Interpreter) Resolve(e ast.Expr, depth int) {
+	slog.Debug("resolving", slog.Attr{Key: "locals", Value: slog.AnyValue(i.Locals)})
+	i.Locals[e] = depth
+}
+
+func (i *Interpreter) lookup(e expressions.Variable) (any, error) {
+	if distance, ok := i.Locals[e]; ok {
+		return i.env.GetAt(distance, e.Name.Lexeme)
+	}
+	return i.global.Get(e.Name.Lexeme)
 }
 
 type Callable interface {

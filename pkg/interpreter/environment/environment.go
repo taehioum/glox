@@ -32,6 +32,11 @@ func (env *Environment) Assign(name string, value any) error {
 	return env.enclosing.Assign(name, value)
 }
 
+func (env *Environment) AssignAt(distance int, name string, value any) error {
+	env.ancestor(distance).values[name] = value
+	return nil
+}
+
 func (env *Environment) Define(name string, value any) {
 	env.values[name] = value
 }
@@ -42,7 +47,19 @@ func (env *Environment) Get(name string) (any, error) {
 		return v, nil
 	}
 	if env.enclosing == nil {
-		return nil, fmt.Errorf("undefined variable '%s'", name)
+		return nil, fmt.Errorf("getting: undefined variable '%s'", name)
 	}
 	return env.enclosing.Get(name)
+}
+
+func (env *Environment) GetAt(distance int, name string) (any, error) {
+	return env.ancestor(distance).values[name], nil
+}
+
+func (env *Environment) ancestor(distance int) *Environment {
+	e := env
+	for i := 0; i < distance; i++ {
+		e = e.enclosing
+	}
+	return e
 }

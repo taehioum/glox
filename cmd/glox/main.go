@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/taehioum/glox/pkg/interpreter"
+	"github.com/taehioum/glox/pkg/runner"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 		Level: slogLeveler,
 	})))
 
-	i := interpreter.Runner{}
+	i := runner.Runner{}
 
 	var err error
 	if len(args) == 1 {

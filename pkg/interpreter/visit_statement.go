@@ -8,12 +8,12 @@ import (
 )
 
 func (i *Interpreter) VisitDeclaration(stmt statements.Declaration) error {
-	if stmt.Intializer == nil {
+	if stmt.Initializer == nil {
 		i.env.Define(stmt.Name.Lexeme, nil)
 		return nil
 	}
 
-	v, err := i.Eval(stmt.Intializer)
+	v, err := i.Eval(stmt.Initializer)
 	if err != nil {
 		return err
 	}

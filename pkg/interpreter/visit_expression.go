@@ -12,7 +12,12 @@ func (i *Interpreter) VisitAssignment(e expressions.Assignment) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	i.env.Assign(e.Name.Lexeme, v)
+
+	if distance, ok := i.Locals[e]; ok {
+		i.env.AssignAt(distance, e.Name.Lexeme, v)
+	} else {
+		i.global.Assign(e.Name.Lexeme, v)
+	}
 	return v, nil
 }
 
@@ -25,11 +30,7 @@ func (i *Interpreter) VisitGrouping(e expressions.Grouping) (any, error) {
 }
 
 func (i *Interpreter) VisitVariable(e expressions.Variable) (any, error) {
-	v, err := i.env.Get(e.Name.Lexeme)
-	if v == nil {
-		return nil, fmt.Errorf("line %d: uninitialized variable '%s'", e.Name.Ln, e.Name.Lexeme)
-	}
-	return v, err
+	return i.lookup(e)
 }
 
 func (i *Interpreter) VisitUnary(e expressions.Unary) (any, error) {

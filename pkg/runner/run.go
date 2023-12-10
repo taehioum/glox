@@ -1,4 +1,4 @@
-package interpreter
+package runner
 
 import (
 	"bufio"
@@ -7,7 +7,9 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/taehioum/glox/pkg/interpreter"
 	"github.com/taehioum/glox/pkg/parser"
+	"github.com/taehioum/glox/pkg/resolver"
 	"github.com/taehioum/glox/pkg/scanner"
 )
 
@@ -59,7 +61,14 @@ func (i *Runner) Run(source string, writer io.Writer) error {
 	}
 
 	slog.Debug("stmts", slog.Attr{Key: "stmts", Value: slog.AnyValue(stmts)})
-	intpr := NewInterpreter(writer)
+	intpr := interpreter.New(writer)
+
+	resolver := resolver.New(intpr)
+	err = resolver.Resolve(stmts)
+	if err != nil {
+		return fmt.Errorf("resolving: %w", err)
+	}
+
 	err = intpr.Interprete(stmts...)
 	if err != nil {
 		return err

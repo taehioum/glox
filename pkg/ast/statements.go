@@ -18,8 +18,6 @@ type StatementVistior interface {
 	VisitExpression(Expression) error
 }
 
-// type Visitor func(Stmt) error
-
 type Stmt interface {
 	Accept(StatementVistior) error
 }
@@ -45,8 +43,8 @@ func (stmt Expression) Accept(v StatementVistior) error {
 }
 
 type Declaration struct {
-	Name       token.Token
-	Intializer Expr
+	Name        token.Token
+	Initializer Expr
 }
 
 func (stmt Declaration) Accept(v StatementVistior) error {
@@ -54,7 +52,7 @@ func (stmt Declaration) Accept(v StatementVistior) error {
 }
 
 func (stmt Declaration) String() string {
-	return fmt.Sprintf("Declaration{Name: %s, Intializer: %s}", stmt.Name, stmt.Intializer)
+	return fmt.Sprintf("Declaration{Name: %s, Intializer: %s}", stmt.Name, stmt.Initializer)
 }
 
 type Block struct {

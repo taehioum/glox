@@ -42,7 +42,7 @@ func (p DeclarationStatementParselet) parse(parser *Parser) (ast.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
-		stmt.Intializer = init
+		stmt.Initializer = init
 	}
 
 	_, err = parser.consumeAndCheck(token.SEMICOLON, "expected ';' after var declaration")
@@ -274,8 +274,8 @@ func (p FunctionDeclarationStatementParselet) parse(parser *Parser) (ast.Stmt, e
 	}
 
 	return ast.Declaration{
-		Name:       name,
-		Intializer: lambda,
+		Name:        name,
+		Initializer: lambda,
 	}, nil
 }
 

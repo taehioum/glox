@@ -7,14 +7,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/taehioum/glox/pkg/interpreter"
+	"github.com/taehioum/glox/pkg/runner"
 )
 
 //go:embed fib.lox
 var fib string
 
 func TestFib(t *testing.T) {
-	r := interpreter.Runner{}
+	r := runner.Runner{}
 	var b bytes.Buffer
 	err := r.Run(fib, io.Writer(&b))
 	if err != nil {

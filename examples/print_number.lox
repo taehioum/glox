@@ -1,5 +1,0 @@
-var x = fun (n) {
-  print(n);
-};
-
-x(3);
